@@ -1,4 +1,3 @@
-import doctest
 import json
 
 def bytes2msg(bytes):
@@ -6,12 +5,4 @@ def bytes2msg(bytes):
 
 
 def msg2bytes(msg):
-    ''' Convert object to json bytes string
-    >>> from jim import msg2bytes
-    >>> msg2bytes('test')
-    b'"test"'
-    >>>
-    '''
     return json.dumps(msg).encode('utf8')
-
-doctest.testmod()
