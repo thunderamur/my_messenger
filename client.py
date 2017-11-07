@@ -2,18 +2,19 @@ import time
 import sys
 from socket import socket, AF_INET, SOCK_STREAM
 
-from jim import bytes2msg, msg2bytes
+from jim.config import *
+from jim.utils import dict_to_bytes, bytes_to_dict, get_message, send_message
+from jim.messages import *
 
 
 class MessengerClient(object):
-    def __init__(self, buffer_size = 1024):
-        self.s = socket(AF_INET, SOCK_STREAM)
-        self.buffer_size = buffer_size
+    def __init__(self):
+        self.socket = socket(AF_INET, SOCK_STREAM)
         self.user = {}
 
     def connect(self, host, port):
         try:
-            self.s.connect((host, port))
+            self.socket.connect((host, port))
         except ConnectionRefusedError:
             print('Connection Refused Error!')
             print('Check IP and port parameters.')
@@ -22,7 +23,7 @@ class MessengerClient(object):
         return True
 
     def close(self):
-        self.s.close()
+        self.socket.close()
 
     def set_user(self, account_name, status):
         self.user = {
@@ -31,10 +32,10 @@ class MessengerClient(object):
         }
 
     def send(self, msg):
-        self.s.send(msg2bytes(msg))
+        send_message(self.socket, msg)
 
     def receive(self):
-        return bytes2msg(self.s.recv(self.buffer_size))
+        return get_message(self.socket)
 
     def parse(self):
         msg = self.receive()
@@ -51,30 +52,14 @@ class MessengerClient(object):
                 return False
             while True:
                 if self.parse() == 'probe':
-                    self.send(self.jim_presence())
+                    account_name = self.user['account_name']
+                    status = self.user['status']
+                    self.send(jim_presence(account_name, status))
                 self.parse()
-                self.send(self.jim_quit())
+                self.send(jim_quit())
                 break  # Temporary
             self.close()
             break  # Temporary
-
-    # Не нравятся мне методы ниже, по идее их надо вынести в отдельный класс протокола.
-    # Переделаю к следующему ДЗ, сейчас не успею уже. Вообще мысль верная?
-    def jim_presence(self):
-        return {
-            'action': 'presence',
-            'time': time.time(),
-            'type': 'status',
-            'user': {
-                'account_name': self.user['account_name'],
-                'status': self.user['status']
-            }
-        }
-
-    def jim_quit(self):
-        return {
-            'action': 'quit'
-        }
 
 
 def main():

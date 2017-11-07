@@ -2,42 +2,26 @@ import time
 import sys
 from socket import socket, AF_INET, SOCK_STREAM
 
-from jim import bytes2msg, msg2bytes
-
-
-responses = {
-    200: 'ok',
-    202: 'accepted'
-}
-
-
-def gen_response(code):
-    response = {
-        'response': code,
-        'time': time.time()
-    }
-    if code < 299:
-        response.update({'alert': responses[code]})
-
-    return response
+from jim.config import *
+from jim.utils import dict_to_bytes, bytes_to_dict, get_message, send_message
+from jim.messages import *
 
 
 class MessengerServer(object):
-    def __init__(self, host, port, max_connections = 5, buffer_size = 1024):
-        self.buffer_size = buffer_size
+    def __init__(self, host, port, max_connections = 5):
         self.clients = {}
 
-        self.s = socket(AF_INET, SOCK_STREAM)
-        self.s.bind((host, port))
-        self.s.listen(max_connections)
+        self.socket = socket(AF_INET, SOCK_STREAM)
+        self.socket.bind((host, port))
+        self.socket.listen(max_connections)
 
     def run(self):
         while True:
-            client, addr = self.s.accept()
+            client, addr = self.socket.accept()
             self.clients.update({addr: client})
             print('Connection from: {}'.format(str(addr)))
-            self.send(addr, gen_response(200))
-            self.send(addr, self.jim_probe())
+            self.send(addr, jim_response(200))
+            self.send(addr, jim_probe())
             while True:
                 if self.parse(addr) == 'quit':
                     break
@@ -46,27 +30,21 @@ class MessengerServer(object):
         self.close()
 
     def close(self):
-        self.s.close()
+        self.socket.close()
 
     def send(self, addr, msg):
-        self.clients[addr].send(msg2bytes(msg))
+        send_message(self.clients[addr], msg)
 
     def receive(self, addr):
-        return bytes2msg(self.clients[addr].recv(self.buffer_size))
+        return get_message(self.clients[addr])
 
     def parse(self, addr):
         msg = self.receive(addr)
         print(msg)
-        self.send(addr, gen_response(202))
+        self.send(addr, jim_response(202))
         if 'action' in msg:
             return msg['action']
         return False
-
-    def jim_probe(self):
-        return {
-            'action': 'probe',
-            'time': time.time()
-        }
 
 
 def main():
