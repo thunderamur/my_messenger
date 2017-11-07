@@ -1,5 +1,6 @@
-import time
+#import time
 import sys
+import select
 from socket import socket, AF_INET, SOCK_STREAM
 
 from jim.config import *
@@ -9,42 +10,70 @@ from jim.messages import *
 
 class MessengerServer(object):
     def __init__(self, host, port, max_connections = 5):
-        self.clients = {}
+        self.clients = []
 
         self.socket = socket(AF_INET, SOCK_STREAM)
         self.socket.bind((host, port))
         self.socket.listen(max_connections)
-
-    def run(self):
-        while True:
-            client, addr = self.socket.accept()
-            self.clients.update({addr: client})
-            print('Connection from: {}'.format(str(addr)))
-            self.send(addr, jim_response(200))
-            self.send(addr, jim_probe())
-            while True:
-                if self.parse(addr) == 'quit':
-                    break
-            client.close()
-            break  # Temporary
-        self.close()
+        self.socket.settimeout(0.2)
 
     def close(self):
         self.socket.close()
 
-    def send(self, addr, msg):
-        send_message(self.clients[addr], msg)
+    def parse(self, requests):
+        results = {}
+        for sock in requests:
+            data = requests[sock]
+            print(data)
+            if 'action' in data:
+                if data['action'] == 'presence':
+                    results[sock] = jim_response(OK)
+        return results
 
-    def receive(self, addr):
-        return get_message(self.clients[addr])
+    def read_requests(self, r_clients):
+        responses = {}  # Словарь ответов сервера вида {сокет: запрос}
+        for sock in r_clients:
+            try:
+                data = get_message(sock)
+                responses[sock] = data
+            except:
+                print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
+                self.clients.remove(sock)
+        return responses
 
-    def parse(self, addr):
-        msg = self.receive(addr)
-        print(msg)
-        self.send(addr, jim_response(202))
-        if 'action' in msg:
-            return msg['action']
-        return False
+    def write_responses(self, requests, w_clients):
+        for sock in w_clients:
+            if sock in requests:
+                try:
+                    data = requests[sock]
+                    send_message(sock, data)
+                except:  # Сокет недоступен, клиент отключился
+                    print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
+                    sock.close()
+                    self.clients.remove(sock)
+
+    def run(self):
+        while True:
+            try:
+                conn, addr = self.socket.accept()
+            except OSError as e:
+                pass  # timeout вышел
+            else:
+                print('Connection from: {}'.format(str(addr)))
+                self.clients.append(conn)
+            finally:
+                # Проверить наличие событий ввода-вывода
+                wait = 0
+                r = []
+                w = []
+                try:
+                    r, w, e = select.select(self.clients, self.clients, [], wait)
+                except:
+                    pass  # Ничего не делать, если какой-то клиент отключился
+
+                requests = self.read_requests(r)  # Сохраним запросы клиентов
+                requests = self.parse(requests)
+                self.write_responses(requests, w)  # Выполним отправку ответов клиентам
 
 
 def main():

@@ -10,6 +10,13 @@ ERROR = 'error'
 # Значения
 PRESENCE = 'presence'
 
+# Коды ответов (будут дополняться)
+BASIC_NOTICE = 100
+OK = 200
+ACCEPTED = 202
+WRONG_REQUEST = 400  # неправильный запрос/json объект
+SERVER_ERROR = 500
+
 RESPONSE_CODES = {
     100: 'basic_notice',
     200: 'ok',

@@ -19,7 +19,8 @@ class MessengerClient(object):
             print('Connection Refused Error!')
             print('Check IP and port parameters.')
             return False
-        self.parse()
+        msg = self.receive()
+        self.parse(msg)
         return True
 
     def close(self):
@@ -37,8 +38,7 @@ class MessengerClient(object):
     def receive(self):
         return get_message(self.socket)
 
-    def parse(self):
-        msg = self.receive()
+    def parse(self, msg):
         print(msg)
         if 'action' in msg:
             return msg['action']
@@ -51,11 +51,13 @@ class MessengerClient(object):
                 print('Method connect(host, port) returned error')
                 return False
             while True:
-                if self.parse() == 'probe':
+                msg = self.receive()
+                if self.parse(msg) == 'probe':
                     account_name = self.user['account_name']
                     status = self.user['status']
                     self.send(jim_presence(account_name, status))
-                self.parse()
+                msg = self.receive()
+                self.parse(msg)
                 self.send(jim_quit())
                 break  # Temporary
             self.close()
