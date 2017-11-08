@@ -36,3 +36,13 @@ def jim_response(code):
     if code < 299:
         response.update({'alert': RESPONSE_CODES[code]})
     return response
+
+
+def jim_msg(dest, src, message):
+    return {
+        'action': 'msg',
+        'time': time.time(),
+        'to': dest,
+        'from': src,
+        'message': message
+    }

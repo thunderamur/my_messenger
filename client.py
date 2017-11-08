@@ -8,23 +8,14 @@ from jim.messages import *
 
 
 class MessengerClient(object):
+
     def __init__(self):
-        self.socket = socket(AF_INET, SOCK_STREAM)
         self.user = {}
 
-    def connect(self, host, port):
-        try:
-            self.socket.connect((host, port))
-        except ConnectionRefusedError:
-            print('Connection Refused Error!')
-            print('Check IP and port parameters.')
-            return False
-        msg = self.receive()
-        self.parse(msg)
-        return True
 
     def close(self):
         self.socket.close()
+
 
     def set_user(self, account_name, status):
         self.user = {
@@ -32,50 +23,63 @@ class MessengerClient(object):
             'status': status
         }
 
-    def send(self, msg):
-        send_message(self.socket, msg)
-
-    def receive(self):
-        return get_message(self.socket)
 
     def parse(self, msg):
-        print(msg)
         if 'action' in msg:
-            return msg['action']
-        return False
+            if msg['action'] == 'msg':
+                print(msg['message'])
+            else:
+                print(msg)
 
-    def run(self, host, port):
-        while True:
-            self.set_user('user name', 'user status')
-            if not self.connect(host, port):
-                print('Method connect(host, port) returned error')
+
+    def write(self, txt):
+        if txt == '<quit>':
+            return False
+        else:
+            return jim_msg('#room_name', self.user['account_name'], txt)
+
+
+    def run(self, host, port, mode = 'r'):
+        with socket(AF_INET, SOCK_STREAM) as self.socket:
+            self.set_user('user-name', 'user-status')
+
+            try:
+                self.socket.connect((host, port))
+            except ConnectionRefusedError:
+                print('Connection Refused Error!')
+                print('Check IP and port parameters.')
                 return False
+
             while True:
-                msg = self.receive()
-                if self.parse(msg) == 'probe':
-                    account_name = self.user['account_name']
-                    status = self.user['status']
-                    self.send(jim_presence(account_name, status))
-                msg = self.receive()
-                self.parse(msg)
-                self.send(jim_quit())
-                break  # Temporary
-            self.close()
-            break  # Temporary
+                if mode == 'w':
+                    txt = input('>>')
+                    msg = self.write(txt)
+                    if msg:
+                        send_message(self.socket, msg)
+                    else:
+                        break
+                else:
+                    msg = get_message(self.socket)
+                    self.parse(msg)
 
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: client.py <addr> [<port>]')
+        print('Usage: client.py <addr> [<port>] [-r, -w]')
         return -1
     host = sys.argv[1]
+
+    port = 7777
     if len(sys.argv) == 3:
-        port = int(sys.argv[2])
-    else:
-        port = 7777
+        if not sys.argv[2].startswith('-'):
+            port = int(sys.argv[2])
+
+    mode = 'r'
+    if '-w' in sys.argv:
+        mode = 'w'
 
     client = MessengerClient()
-    client.run(host, port)
+    client.run(host, port, mode)
 
 
 if __name__ == '__main__':
