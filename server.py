@@ -23,7 +23,7 @@ class MessengerServer(object):
     def close(self):
         self.socket.close()
 
-    @log
+
     def parse(self, requests):
         results = {}
         message = False
@@ -69,6 +69,7 @@ class MessengerServer(object):
                     self.clients.remove(sock)
 
 
+    @log
     def run(self, host, port, max_connections = 5):
         with socket(AF_INET, SOCK_STREAM) as self.socket:
             self.socket.bind((host, port))
