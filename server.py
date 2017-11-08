@@ -7,6 +7,12 @@ from jim.config import *
 from jim.utils import dict_to_bytes, bytes_to_dict, get_message, send_message
 from jim.messages import *
 
+import logging
+from log.config import logger
+from log.utils import Log
+
+log = Log(logger)
+
 
 class MessengerServer(object):
 
@@ -17,7 +23,7 @@ class MessengerServer(object):
     def close(self):
         self.socket.close()
 
-
+    @log
     def parse(self, requests):
         results = {}
         message = False
