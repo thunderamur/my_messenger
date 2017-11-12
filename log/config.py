@@ -8,7 +8,7 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - \
                                %(module)s - %(funcName)s - %(message)s')
 
 fh = logging.FileHandler(log_file_name, encoding='utf-8')
-fh = logging.handlers.TimedRotatingFileHandler(log_file_name, when='midnight', interval=1, backupCount=2)
+fh = logging.handlers.TimedRotatingFileHandler(log_file_name, when='d', backupCount=2)
 fh.setLevel(logging.DEBUG)
 fh.setFormatter(formatter)
 
