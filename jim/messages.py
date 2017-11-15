@@ -3,46 +3,69 @@ import time
 from .config import *
 
 
-def jim_presence(account_name, status):
-    return {
-        'action': 'presence',
-        'time': time.time(),
-        'type': 'status',
-        'user': {
-            'account_name': account_name,
-            'status': status
+class JIMAction(object):
+
+    def presence(self, account_name, status):
+        return {
+            'action': 'presence',
+            'time': time.time(),
+            'type': 'status',
+            'user': {
+                'account_name': account_name,
+                'status': status
+            }
         }
-    }
+
+    def probe(self):
+        return {
+            'action': 'probe',
+            'time': time.time()
+        }
+
+    def msg(self, dest, src, message):
+        return {
+            'action': 'msg',
+            'time': time.time(),
+            'to': dest,
+            'from': src,
+            'message': message
+        }
+
+    def quit(self):
+        return {
+            'action': 'quit'
+        }
+
+    def authenticate(self, account_name, password):
+        return {
+            'action': 'authenticate',
+            'time': time.time(),
+            'user': {
+                'account_name': account_name,
+                'password': password
+            }
+        }
+
+    def join(self, room):
+        return {
+            'action': 'join',
+            'time': time.time(),
+            'room': room
+        }
+
+    def leave(self, room):
+        return {
+            'action': 'leave',
+            'time': time.time(),
+            'room': room
+        }
 
 
-def jim_quit():
-    return {
-        'action': 'quit'
-    }
+class JIMResponse(object):
 
-
-def jim_probe():
-    return {
-        'action': 'probe',
-        'time': time.time()
-    }
-
-
-def jim_response(code):
-    response = {
-        'response': code,
-        'time': time.time()
-    }
-    if code < 299:
-        response.update({'alert': RESPONSE_CODES[code]})
-    return response
-
-
-def jim_msg(dest, src, message):
-    return {
-        'action': 'msg',
-        'time': time.time(),
-        'to': dest,
-        'from': src,
-        'message': message
-    }
+    def response(self, code, message=''):
+        return {
+            'response': code,
+            'time': time.time(),
+            'alert' if code < 299 else 'error': message
+        }
