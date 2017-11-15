@@ -3,26 +3,26 @@ import sys
 import select
 from socket import socket, AF_INET, SOCK_STREAM
 
-from jim.config import *
-from jim.utils import dict_to_bytes, bytes_to_dict, get_message, send_message
+# from jim.config import *
+from jim.utils import get_message, send_message
 from jim.messages import *
 
-import logging
-from log.config import logger
-from log.utils import Log
+# import logging
+from log.server_log_config import server_logger
+from log.decorators import Log
 
-log = Log(logger)
+log = Log(server_logger)
 
 
 class MessengerServer(object):
 
     def __init__(self):
         self.clients = []
-
+        self.action = JIMAction()
+        self.response = JIMResponse()
 
     def close(self):
         self.socket.close()
-
 
     @log
     def parse(self, requests):
@@ -34,7 +34,7 @@ class MessengerServer(object):
             print(data)
             if 'action' in data:
                 if data['action'] == 'presence':
-                    results[sock] = jim_response(OK)
+                    results[sock] = self.response.response(OK)
                 elif data['action'] == 'msg':
                     message = data
 
@@ -44,7 +44,6 @@ class MessengerServer(object):
                     results[sock] = message
 
         return results
-
 
     def read_requests(self, r_clients):
         responses = {}  # Словарь ответов сервера вида {сокет: запрос}
@@ -57,7 +56,6 @@ class MessengerServer(object):
                 self.clients.remove(sock)
         return responses
 
-
     def write_responses(self, requests, w_clients):
         for sock in w_clients:
             if sock in requests:
@@ -68,7 +66,6 @@ class MessengerServer(object):
                     print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
                     sock.close()
                     self.clients.remove(sock)
-
 
     def run(self, host, port, max_connections = 5):
         with socket(AF_INET, SOCK_STREAM) as self.socket:
