@@ -8,7 +8,9 @@ from jim.messages import *
 
 
 class MessengerClient(object):
-
+    """
+    Класс Клиент - класс, реализующий клиентскую часть системы.
+    """
     def __init__(self):
         self.user = {}
         self.action = JIMAction()

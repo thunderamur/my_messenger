@@ -4,7 +4,9 @@ from .config import *
 
 
 class JIMAction(object):
-
+    """
+    Класс JIMСообщение - класс, реализующий сообщение (msg) по протоколу JIM.
+    """
     def presence(self, account_name, status):
         return {
             'action': 'presence',
@@ -62,7 +64,9 @@ class JIMAction(object):
 
 
 class JIMResponse(object):
-
+    """
+    Класс JIMОтвет - класс, реализующий ответ (response) по протоколу JIM.
+    """
     def response(self, code, message=''):
         return {
             'response': code,
