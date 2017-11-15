@@ -11,18 +11,17 @@ class MessengerClient(object):
 
     def __init__(self):
         self.user = {}
-
+        self.action = JIMAction()
+        self.response = JIMResponse()
 
     def close(self):
         self.socket.close()
-
 
     def set_user(self, account_name, status):
         self.user = {
             'account_name': account_name,
             'status': status
         }
-
 
     def parse(self, msg):
         if 'action' in msg:
@@ -31,13 +30,11 @@ class MessengerClient(object):
             else:
                 print(msg)
 
-
     def write(self, txt):
         if txt == '<quit>':
             return False
         else:
-            return jim_msg('#room_name', self.user['account_name'], txt)
-
+            return self.action.msg('#room_name', self.user['account_name'], txt)
 
     def run(self, host, port, mode = 'r'):
         with socket(AF_INET, SOCK_STREAM) as self.socket:
