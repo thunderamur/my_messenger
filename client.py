@@ -1,13 +1,45 @@
-import time
+# import time
 import sys
+import dis
 from socket import socket, AF_INET, SOCK_STREAM
 
-from jim.config import *
-from jim.utils import dict_to_bytes, bytes_to_dict, get_message, send_message
+# from jim.config import *
+from jim.utils import get_message, send_message
 from jim.messages import *
 
 
-class MessengerClient(object):
+class ClientVerifier(type):
+    """
+    4. *Реализовать метакласс ClientVerifier, выполняющий базовую проверку класса Клиент
+        (для некоторых проверок уместно использовать модуль dis):
+
+        отсутствие вызовов accept и listen для сокетов
+        использование сокетов для работы по TCP
+        отсутствие создания сокетов на уровне классов, т.е. отсутствие конструкций вида:
+
+    class Client:
+        s = socket()
+        ...
+    """
+    def __init__(self, clsname, bases, clsdict):
+        for key, value in clsdict.items():
+            # Пропустить специальные и частные методы
+            if key.startswith('__'): continue
+
+            # Пропустить любые невызываемые объекты
+            if not hasattr(value, '__call__'): continue
+
+            # Проверить наличие строки документирования
+            # if not getattr(value, '__doc__'):
+            #     raise TypeError('Метод {} должен иметь строку документации'.format(key))
+
+            print(key, dis.code_info(value), end='\n\n\n\n\n')
+
+        type.__init__(self, clsname, bases, clsdict)
+
+
+
+class MessengerClient(metaclass=ClientVerifier):
     """
     Класс Клиент - класс, реализующий клиентскую часть системы.
     """
