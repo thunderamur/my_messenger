@@ -35,7 +35,8 @@ class JIMAction(object):
 
     def quit(self):
         return {
-            'action': 'quit'
+            'action': 'quit',
+            'time': time.time()
         }
 
     def authenticate(self, account_name, password):
