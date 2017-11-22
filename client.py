@@ -46,16 +46,26 @@ class MessengerClient():
     """
     def __init__(self):
         self.user = {}
-
-    def close(self):
-        self.socket.close()
+        self.socket = None
+        self.room = None
 
     def set_user(self, account_name, status):
         self.user = {
             'account_name': account_name,
             'status': status
         }
+        
+    def join(self, room):
+        self.room = room
+        send_jim(self.socket, JimJoin(self.room))
+        response = get_jim(self.socket)
+        print(response.__dict__)
 
+    def leave(self):
+        send_jim(self.socket, JimLeave(self.room))
+        response = get_jim(self.socket)
+        print(response.__dict__)
+        
     def parse(self, msg):
         print(msg.__dict__)
         # if 'action' in msg:
@@ -64,14 +74,9 @@ class MessengerClient():
         #     else:
         #         print(msg)
 
-    def write(self, txt):
-        if txt == '<quit>':
-            return False
-        else:
-            return JimMessage('#room_name', self.user['account_name'], txt)
-
     def run(self, host, port, mode = 'r'):
-        with socket(AF_INET, SOCK_STREAM) as self.socket:
+        with socket(AF_INET, SOCK_STREAM) as sock:
+            self.socket = sock
             self.set_user('user-name', 'user-status')
 
             try:
@@ -81,14 +86,16 @@ class MessengerClient():
                 print('Check IP and port parameters.')
                 return False
 
+            self.join('#room_name')
+
             while True:
                 if mode == 'w':
                     txt = input('>>')
-                    msg = self.write(txt)
-                    if msg:
-                        send_jim(self.socket, msg)
-                    else:
+                    if txt == '<quit>':
+                        send_jim(self.socket, JimQuit())
                         break
+                    else:
+                        send_jim(self.socket, JimMessage(self.room, self.user['account_name'], txt))
                 else:
                     msg = get_jim(self.socket)
                     self.parse(msg)

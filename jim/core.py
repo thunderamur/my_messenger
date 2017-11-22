@@ -91,6 +91,12 @@ class Jim:
                     return JimPresence(**params)
                 elif action == MSG:
                     return JimMessage(**params)
+                elif action == JOIN:
+                    return JimJoin(**params)
+                elif action == LEAVE:
+                    return JimLeave(**params)
+                elif action == QUIT:
+                    return JimQuit()
                 else:
                     # сюда по логике никогда не должны попадать но для надежности лучше обработать
                     pass
@@ -157,6 +163,11 @@ class JimJoin(JimRoom):
 class JimLeave(JimRoom):
     def __init__(self, room):
         super().__init__(room, LEAVE)
+
+
+class JimQuit(JimAction):
+    def __init__(self):
+        super().__init__(QUIT)
 
 
 class ResponseCodeError(Exception):

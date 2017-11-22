@@ -7,6 +7,8 @@ from socket import socket, AF_INET, SOCK_STREAM
 from jim.utils import send_jim, get_jim
 from jim.core import *
 
+from chat.chat import Chat
+
 # import logging
 from log.server_log_config import server_logger
 from log.decorators import Log
@@ -18,6 +20,9 @@ class MessengerServer(object):
 
     def __init__(self):
         self.clients = []
+
+        # {'room_name': Chat()}
+        self.rooms = {}
 
     def close(self):
         self.socket.close()
@@ -32,15 +37,43 @@ class MessengerServer(object):
             print(data.__dict__)
 
             if hasattr(data, ACTION):
+
                 if data.action == PRESENCE:
-                    results[sock] = JimResponse(OK)
+                    send_jim(sock, JimResponse(OK))
+
                 elif data.action == MSG:
-                    message = data
+                    self.rooms[data.to].put(sock, data)
+                    send_jim(sock, JimResponse(OK))
+
+                elif data.action == JOIN:
+                    if data.room not in self.rooms:
+                        self.rooms.update({data.room: Chat()})
+                    self.rooms[data.room].join(sock)
+                    send_jim(sock, JimResponse(ACCEPTED))
+
+                elif data.action == LEAVE:
+                    if data.room in self.rooms:
+                        self.rooms[data.room].leave(sock)
+                        send_jim(sock, JimResponse(GONE))
+                    else:
+                        send_jim(sock, JimResponse(NOT_FOUND))
+
+                elif data.action == QUIT:
+                    #
+                    # !!!! дописать удаление клиента из комнат
+                    #
+                    print('Client {} {} quit'.format(sock.fileno(), sock.getpeername()))
+                    self.clients.remove(sock)
+            else:
+                print('!!!!!!!!!!!!! NO ACTION !!!!!!!!!!!!!!!!')
+                print(data.__dict__)
 
         for sock in self.clients:
-            if sock not in requests:
-                if message:
-                    results[sock] = message
+            if sock not in results:
+                for room in self.rooms:
+                    if self.rooms[room].is_member(sock):
+                        if not self.rooms[room].is_empty(sock):
+                            results[sock] = self.rooms[room].get(sock)
 
         return results
 
