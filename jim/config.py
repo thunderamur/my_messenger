@@ -2,33 +2,35 @@
 JIM protocol config file.
 """
 
-# ************************************
-# * Explicit is better than implicit *
-# ************************************
-# # Keys
-# ACTION = 'action'
-# TIME = 'time'
-# TYPE = 'type'
-# USER = 'user'
-# ACCOUNT_NAME = 'account_name'
-# PASSWORD = 'password'
-# TO = 'to'
-# FROM = 'from'
-# MESSAGE = 'message'
-# ROOM = 'room'
-# RESPONSE = 'response'
-# ALERT = 'alert'
-# ERROR = 'error'
-#
-# # Values
-# PRESENCE = 'presence'
-# PROBE = 'probe'
-# MSG = 'msg'
-# QUIT = 'quit'
-# JOIN = 'join'
-# LEAVE = 'leave'
-# AUTHENTICATE = 'authenticate'
-# STATUS = 'status'  # also is key for USER
+ENCODING = 'utf-8'
+
+# Keys
+ACTION = 'action'
+TIME = 'time'
+TYPE = 'type'
+USER = 'user'
+ACCOUNT_NAME = 'account_name'
+PASSWORD = 'password'
+TO = 'to'
+FROM = 'from'
+MESSAGE = 'message'
+ROOM = 'room'
+RESPONSE = 'response'
+ALERT = 'alert'
+ERROR = 'error'
+
+# Values
+PRESENCE = 'presence'
+PROBE = 'probe'
+MSG = 'msg'
+QUIT = 'quit'
+JOIN = 'join'
+LEAVE = 'leave'
+AUTHENTICATE = 'authenticate'
+STATUS = 'status'  # also is key for USER
+
+# Tuple of actions
+ACTIONS = (PRESENCE, PROBE, MSG, QUIT, JOIN, LEAVE, AUTHENTICATE, STATUS)
 
 # Response codes
 BASIC_NOTICE = 100
@@ -44,3 +46,13 @@ NOT_FOUND = 404
 CONFLICT = 409
 GONE = 410
 SERVER_ERROR = 500
+
+# Tuple of response codes
+RESPONSE_CODES = (
+    BASIC_NOTICE, IMPORTANT_NOTICE, OK, CREATED, ACCEPTED, WRONG_REQUEST, NOT_AUTHORIZED,
+    WRONG_LOGIN_OR_PASSWORD, FORBIDDEN, NOT_FOUND, CONFLICT, GONE, SERVER_ERROR
+)
+
+USERNAME_MAX_LENGTH = 25
+ROOMNAME_MAX_LENGTH = 25
+MESSAGE_MAX_LENGTH = 500

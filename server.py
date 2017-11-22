@@ -5,7 +5,7 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 # from jim.config import *
 from jim.utils import get_message, send_message
-from jim.messages import *
+from jim.core import *
 
 # import logging
 from log.server_log_config import server_logger
@@ -18,8 +18,6 @@ class MessengerServer(object):
 
     def __init__(self):
         self.clients = []
-        self.action = JIMAction()
-        self.response = JIMResponse()
 
     def close(self):
         self.socket.close()
