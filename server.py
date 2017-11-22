@@ -4,7 +4,7 @@ import select
 from socket import socket, AF_INET, SOCK_STREAM
 
 # from jim.config import *
-from jim.utils import get_message, send_message
+from jim.utils import send_jim, get_jim
 from jim.core import *
 
 # import logging
@@ -29,11 +29,12 @@ class MessengerServer(object):
 
         for sock in requests:
             data = requests[sock]
-            print(data)
-            if 'action' in data:
-                if data['action'] == 'presence':
-                    results[sock] = self.response.response(OK)
-                elif data['action'] == 'msg':
+            print(data.__dict__)
+
+            if hasattr(data, ACTION):
+                if data.action == PRESENCE:
+                    results[sock] = JimResponse(OK)
+                elif data.action == MSG:
                     message = data
 
         for sock in self.clients:
@@ -47,7 +48,7 @@ class MessengerServer(object):
         responses = {}  # Словарь ответов сервера вида {сокет: запрос}
         for sock in r_clients:
             try:
-                data = get_message(sock)
+                data = get_jim(sock)
                 responses[sock] = data
             except:
                 print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
@@ -59,7 +60,7 @@ class MessengerServer(object):
             if sock in requests:
                 try:
                     data = requests[sock]
-                    send_message(sock, data)
+                    send_jim(sock, data)
                 except:  # Сокет недоступен, клиент отключился
                     print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
                     sock.close()
@@ -90,8 +91,8 @@ class MessengerServer(object):
                         pass  # Ничего не делать, если какой-то клиент отключился
 
                     requests = self.read_requests(r)  # Сохраним запросы клиентов
-                    requests = self.parse(requests)
-                    self.write_responses(requests, w)  # Выполним отправку ответов клиентам
+                    responses = self.parse(requests)
+                    self.write_responses(responses, w)  # Выполним отправку ответов клиентам
 
 
 def main():
