@@ -1,4 +1,5 @@
 import json
+from jim.core import *
 
 # Кодировка
 ENCODING = 'utf-8'
@@ -71,3 +72,18 @@ def get_message(sock):
     response = bytes_to_dict(bresponse)
     # возвращаем словарь
     return response
+
+
+def send_jim(sock, jim):
+    print('send_jim()')
+    sock.send(bytes(jim))
+    print('OK')
+
+
+def get_jim(sock):
+    print('get_jim()')
+    bresponse = sock.recv(1024)
+    print('Jim.create_from_bytes')
+    jim = Jim.create_from_bytes(bresponse)
+    print('OK')
+    return jim
