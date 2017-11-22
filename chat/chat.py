@@ -2,22 +2,22 @@ class Chat(object):
     """
     Класс Чат - класс, обеспечивающий взаимодействие двух клиентов.
     """
-    def __init__(self, client_1, client_2):
-        self.__clients = [client_1, client_2]
-        self.__data = {
-            client_1: [],
-            client_2: []
-        }
+    def __init__(self):
+        self.__clients = {}
+
+    def join(self, client):
+        self.__clients.update({client: []})
+
+    def leave(self, client):
+        del self.__clients[client]
 
     def put(self, client, message):
-        self.__data[client].append(message)
+        for c in self.__clients:
+            if c is not client:
+                self.__clients[c].append(message)
 
     def get(self, client):
-        cli = self.__clients[0]
-        if cli == client:
-            cli = self.__clients[1]
-        if len(self.__data[cli]) > 0:
-            return self.__data[cli].pop(0)
+        return self.__clients[client].pop(0)
 
 
 class ChatController(object):
