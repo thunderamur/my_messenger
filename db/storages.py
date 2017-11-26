@@ -12,6 +12,7 @@ except ImportError:
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 engine = create_engine('sqlite:///mydb.sqlite', echo=True)
 Base = declarative_base()
@@ -30,14 +31,12 @@ class Client(Base):
     def __repr__(self):
         return "<User('{}', '{}')>".format(self.login, self.info)
 
+Base.metadata.create_all(engine)
 
-from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=engine)
-
 
 session = Session()
 print('Session:', session)
-
 
 client = Client('Client-1', '')
 session.add(client)
