@@ -4,10 +4,14 @@ import select
 from socket import socket, AF_INET, SOCK_STREAM
 
 # from jim.config import *
-from jim.utils import send_jim, get_jim
+from jim.utils import send_message, get_message
 from jim.core import *
 
 from chat.chat import Chat
+
+from repo.server_models import session
+from repo.server_repo import Repo
+from repo.server_errors import ContactDoesNotExist
 
 # import logging
 from log.server_log_config import server_logger
@@ -20,12 +24,34 @@ class MessengerServer(object):
 
     def __init__(self):
         self.clients = []
-
         # {'room_name': Chat()}
         self.rooms = {}
+        self.repo = Repo(session)
+        self.repo.show_all_clients()
 
     def close(self):
         self.socket.close()
+
+    def presence_response(self, presence):
+        """
+        Формирование ответа клиенту
+        :param presence_message: Словарь presence запроса
+        :return: Словарь ответа
+        """
+        # Делаем проверки
+        try:
+            username = presence.account_name
+            # сохраняем пользователя в базу если его там еще нет
+            if not self.repo.client_exists(username):
+                self.repo.add_client(username)
+        except Exception as e:
+            # Шлем код ошибки
+            response = JimResponse(WRONG_REQUEST, error=str(e))
+            return response.to_dict()
+        else:
+            # Если всё хорошо шлем ОК
+            response = JimResponse(OK)
+            return response.to_dict()
 
     @log
     def parse(self, requests):
@@ -33,32 +59,73 @@ class MessengerServer(object):
         message = False
 
         for sock in requests:
-            data = requests[sock]
-            print(data.__dict__)
+            action = Jim.from_dict(requests[sock])
+            print(action.__dict__)
 
-            if hasattr(data, ACTION):
+            if hasattr(action, ACTION):
 
-                if data.action == PRESENCE:
-                    send_jim(sock, JimResponse(OK))
+                if action.action == GET_CONTACTS:
+                    # нам нужен репозиторий
+                    contacts = self.repo.get_contacts(action.account_name)
+                    # формируем ответ
+                    response = JimResponse(ACCEPTED, quantity=len(contacts))
+                    # Отправляем
+                    send_message(sock, response.to_dict())
+                    # в цикле по контактам шлем сообщения
+                    for contact in contacts:
+                        message = JimContactList(contact.Name)
+                        print(message.to_dict())
+                        send_message(sock, message.to_dict())
+                elif action.action == ADD_CONTACT:
+                    user_id = action.user_id
+                    username = action.account_name
+                    try:
+                        self.repo.add_contact(username, user_id)
+                        # шлем удачный ответ
+                        response = JimResponse(ACCEPTED)
+                        # Отправляем
+                        send_message(sock, response.to_dict())
+                    except ContactDoesNotExist as e:
+                        # формируем ошибку, такого контакта нет
+                        response = JimResponse(WRONG_REQUEST, error='Такого контакта нет')
+                        # Отправляем
+                        send_message(sock, response.to_dict())
+                elif action.action == DEL_CONTACT:
+                    user_id = action.user_id
+                    username = action.account_name
+                    try:
+                        self.repo.del_contact(username, user_id)
+                        # шлем удачный ответ
+                        response = JimResponse(ACCEPTED)
+                        # Отправляем
+                        send_message(sock, response.to_dict())
+                    except ContactDoesNotExist as e:
+                        # формируем ошибку, такого контакта нет
+                        response = JimResponse(WRONG_REQUEST, error='Такого контакта нет')
+                        # Отправляем
+                        send_message(sock, response.to_dict())
 
-                elif data.action == MSG:
-                    self.rooms[data.to].put(sock, data)
-                    send_jim(sock, JimResponse(OK))
+                if action.action == PRESENCE:
+                    send_message(sock, self.presence_response(action))
 
-                elif data.action == JOIN:
-                    if data.room not in self.rooms:
-                        self.rooms.update({data.room: Chat()})
-                    self.rooms[data.room].join(sock)
-                    send_jim(sock, JimResponse(ACCEPTED))
+                elif action.action == MSG:
+                    self.rooms[action.to].put(sock, action)
+                    send_message(sock, JimResponse(OK).to_dict())
 
-                elif data.action == LEAVE:
-                    if data.room in self.rooms:
-                        self.rooms[data.room].leave(sock)
-                        send_jim(sock, JimResponse(GONE))
+                elif action.action == JOIN:
+                    if action.room not in self.rooms:
+                        self.rooms.update({action.room: Chat()})
+                    self.rooms[action.room].join(sock)
+                    send_message(sock, JimResponse(ACCEPTED).to_dict())
+
+                elif action.action == LEAVE:
+                    if action.room in self.rooms:
+                        self.rooms[action.room].leave(sock)
+                        send_message(sock, JimResponse(GONE).to_dict())
                     else:
-                        send_jim(sock, JimResponse(NOT_FOUND))
+                        send_message(sock, JimResponse(NOT_FOUND).to_dict())
 
-                elif data.action == QUIT:
+                elif action.action == QUIT:
                     #
                     # !!!! дописать удаление клиента из комнат
                     #
@@ -66,14 +133,13 @@ class MessengerServer(object):
                     self.clients.remove(sock)
             else:
                 print('!!!!!!!!!!!!! NO ACTION !!!!!!!!!!!!!!!!')
-                print(data.__dict__)
+                print(action.__dict__)
 
         for sock in self.clients:
-            if sock not in results:
-                for room in self.rooms:
-                    if self.rooms[room].is_member(sock):
-                        if not self.rooms[room].is_empty(sock):
-                            results[sock] = self.rooms[room].get(sock)
+            for room in self.rooms:
+                if self.rooms[room].is_member(sock):
+                    if not self.rooms[room].is_empty(sock):
+                        results[sock] = self.rooms[room].get(sock)
 
         return results
 
@@ -81,19 +147,19 @@ class MessengerServer(object):
         responses = {}  # Словарь ответов сервера вида {сокет: запрос}
         for sock in r_clients:
             try:
-                data = get_jim(sock)
+                data = get_message(sock)
                 responses[sock] = data
             except:
                 print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
                 self.clients.remove(sock)
         return responses
 
-    def write_responses(self, requests, w_clients):
+    def write_responses(self, responses, w_clients):
         for sock in w_clients:
-            if sock in requests:
+            if sock in responses:
                 try:
-                    data = requests[sock]
-                    send_jim(sock, data)
+                    message = responses[sock]
+                    send_message(sock, message.to_dict())
                 except:  # Сокет недоступен, клиент отключился
                     print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
                     sock.close()

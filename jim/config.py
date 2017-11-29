@@ -10,6 +10,7 @@ TIME = 'time'
 TYPE = 'type'
 USER = 'user'
 ACCOUNT_NAME = 'account_name'
+USER_ID = 'user_id'
 PASSWORD = 'password'
 TO = 'to'
 FROM = 'from'
@@ -18,6 +19,7 @@ ROOM = 'room'
 RESPONSE = 'response'
 ALERT = 'alert'
 ERROR = 'error'
+QUANTITY = 'quantity'
 
 # Values
 PRESENCE = 'presence'
@@ -28,9 +30,10 @@ JOIN = 'join'
 LEAVE = 'leave'
 AUTHENTICATE = 'authenticate'
 STATUS = 'status'  # also is key for USER
-
-# Tuple of actions
-ACTIONS = (PRESENCE, PROBE, MSG, QUIT, JOIN, LEAVE, AUTHENTICATE, STATUS)
+GET_CONTACTS = 'get_contacts'
+CONTACT_LIST = 'contact_list'
+ADD_CONTACT = 'add_contact'
+DEL_CONTACT = 'del_contact'
 
 # Response codes
 BASIC_NOTICE = 100
@@ -46,6 +49,11 @@ NOT_FOUND = 404
 CONFLICT = 409
 GONE = 410
 SERVER_ERROR = 500
+
+# Tuple of actions
+ACTIONS = (PRESENCE, PROBE, MSG, QUIT, JOIN, LEAVE, AUTHENTICATE, STATUS,
+           GET_CONTACTS, CONTACT_LIST, ADD_CONTACT, DEL_CONTACT
+)
 
 # Tuple of response codes
 RESPONSE_CODES = (

@@ -4,7 +4,7 @@ import dis
 from socket import socket, AF_INET, SOCK_STREAM
 
 # from jim.config import *
-from jim.utils import send_jim, get_jim
+from jim.utils import send_message, get_message
 from jim.core import *
 
 
@@ -38,36 +38,77 @@ from jim.core import *
 #         type.__init__(self, clsname, bases, clsdict)
 
 
+class User:
+    def __init__(self, account_name, status=''):
+        self.account_name = account_name
+        self.status = status
 
 # class MessengerClient(metaclass=ClientVerifier):
-class MessengerClient():
+class MessengerClient:
     """
     Класс Клиент - класс, реализующий клиентскую часть системы.
     """
-    def __init__(self):
-        self.user = {}
+    def __init__(self, account_name):
+        self.user = User(account_name)
         self.socket = None
         self.room = None
 
-    def set_user(self, account_name, status):
-        self.user = {
-            'account_name': account_name,
-            'status': status
-        }
-        
-    def join(self, room):
-        self.room = room
-        send_jim(self.socket, JimJoin(self.room))
-        response = get_jim(self.socket)
-        print(response.__dict__)
+    def presence(self):
+        presence = JimPresence(self.user.account_name)
+        send_message(self.socket, presence.to_dict())
+        response = get_message(self.socket)
+        response = Jim.from_dict(response).to_dict()
+        if response['response'] == OK:
+            return True
 
-    def leave(self):
-        send_jim(self.socket, JimLeave(self.room))
-        response = get_jim(self.socket)
-        print(response.__dict__)
-        
+    def join_room(self, room):
+        self.room = room
+        message = JimJoin(self.room)
+        self.command(message)
+
+    def leave_room(self):
+        message = JimLeave(self.room)
+        self.command(message)
+
+    def add_contact(self, param):
+        message = JimAddContact(self.user.account_name, param)
+        self.command(message)
+
+    def del_contact(self, param):
+        message = JimDelContact(self.user.account_name, param)
+        self.command(message)
+
+    def command(self, message):
+        send_message(self.socket, message.to_dict())
+        response = get_message(self.socket)
+        response = Jim.from_dict(response)
+        if response.response == ACCEPTED:
+            print('Успешно')
+        else:
+            print(response.error)
+
+    def show_list(self):
+        # запрос на список контактов
+        jimmessage = JimGetContacts(self.user.account_name)
+        # отправляем
+        send_message(self.socket, jimmessage.to_dict())
+        # получаем ответ
+        response = get_message(self.socket)
+
+        # приводим ответ к ответу сервера
+        response = Jim.from_dict(response)
+        # там лежит количество контактов
+        quantity = response.quantity
+        # делаем цикл и получаем каждый контакт по отдельности
+        print('У вас ', quantity, 'друзей')
+        print('Вот они:')
+        for i in range(quantity):
+            message = get_message(self.socket)
+            message = Jim.from_dict(message)
+            print(message.user_id)
+
     def parse(self, msg):
-        print(msg.__dict__)
+        print(msg)
         # if 'action' in msg:
         #     if msg['action'] == 'msg':
         #         print(msg['message'])
@@ -77,7 +118,6 @@ class MessengerClient():
     def run(self, host, port, mode = 'r'):
         with socket(AF_INET, SOCK_STREAM) as sock:
             self.socket = sock
-            self.set_user('user-name', 'user-status')
 
             try:
                 self.socket.connect((host, port))
@@ -86,18 +126,35 @@ class MessengerClient():
                 print('Check IP and port parameters.')
                 return False
 
-            self.join('#room_name')
+            if not self.presence():
+                sys.exit()
 
-            while True:
-                if mode == 'w':
-                    txt = input('>>')
-                    if txt == '<quit>':
-                        send_jim(self.socket, JimQuit())
+            self.join_room('#room_name')
+
+            if mode == 'w':
+                while True:
+                    text = input('>> ')
+                    if text == '<quit>':
+                        send_message(self.socket, JimQuit().to_dict())
                         break
+                    elif text == '<leave>':
+                        self.leave_room()
+                    elif text.startswith('<list>'):
+                        self.show_list()
+                    elif text.startswith('<'):
+                        command, param = text.split()
+                        if command == '<add>':
+                            self.add_contact(param)
+                        elif command == '<del>':
+                            self.del_contact(param)
+                        elif command == '<join>':
+                            self.join_room(param)
                     else:
-                        send_jim(self.socket, JimMessage(self.room, self.user['account_name'], txt))
-                else:
-                    msg = get_jim(self.socket)
+                        send_message(self.socket, JimMessage(self.room, self.user.account_name, text).to_dict())
+
+            else:
+                while True:
+                    msg = get_message(self.socket)
                     self.parse(msg)
 
 
@@ -116,7 +173,10 @@ def main():
     if '-w' in sys.argv:
         mode = 'w'
 
-    client = MessengerClient()
+    if mode == 'w':
+        client = MessengerClient('Vasya')
+    else:
+        client = MessengerClient('Petya')
     client.run(host, port, mode)
 
 

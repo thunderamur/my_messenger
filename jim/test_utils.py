@@ -24,6 +24,7 @@ def test_bytes_to_dict():
 # Класс заглушка для сокета
 class ClientSocket():
     """Класс-заглушка для операций с сокетом"""
+
     def __init__(self, sock_type=socket.AF_INET, sock_family=socket.SOCK_STREAM):
         pass
 

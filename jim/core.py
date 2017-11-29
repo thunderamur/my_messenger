@@ -1,24 +1,6 @@
-import time
-import json
-import copy
+import time as ctime
 from .config import *
-
-
-class TooLongError(Exception):
-    """Ошибка когда наше поле длинее чем надо"""
-
-    def __init__(self, name, value, max_length):
-        """
-        :param name: имя поля
-        :param value: текущее значение
-        :param max_length: максимальное значение
-        """
-        self.name = name
-        self.value = value
-        self.max_length = max_length
-
-    def __str__(self):
-        return '{}: {} to long (> {} simbols)'.format(self.name, self.value, self.max_length)
+from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDictError, ResponseCodeError
 
 
 class MaxLengthField:
@@ -36,7 +18,7 @@ class MaxLengthField:
         # если длина поля больше максимального значения
         if len(value) > self.max_length:
             # вызываем ошибку
-            raise TooLongError(self.name, value, self.max_length)
+            raise ToLongError(self.name, value, self.max_length)
         # иначе записываем данные в поле
         setattr(instance, self.name, value)
 
@@ -46,79 +28,138 @@ class MaxLengthField:
 
 
 class Jim:
-    def __bytes__(self):
-        """Приведение объекта к байтам"""
-        print('СЛОВАРЬ', self.__dict__)
-        daction = self.__dict__
-        jaction = json.dumps(daction)
-        baction = jaction.encode(ENCODING)
-        return baction
+    def to_dict(self):
+        return {}
 
     @staticmethod
-    def create_from_bytes(baction):
-        """
-        Наиболее важный метод создания jim объекта из байтов
-        :param baction: входной набор байтов
-        :return: объект иерархии jim
-        """
-        # TODO: добавить всевозможные проверки входных данных!
-        # тут может быть первая ошибка
-        jaction = baction.decode(ENCODING)
-        jaction = json.loads(jaction)
+    def try_create(jim_class, input_dict):
+        try:
+            return jim_class(**input_dict)
+        except KeyError:
+            raise WrongParamsError(input_dict)
 
-        # для классов с дескрипторами атрибуты начинаются с _
-        # поэтому их надо заменить на стандартные
-        for k, v in copy.deepcopy(jaction).items():
-            if k.startswith('_'):
-                del jaction[k]
-                jaction[k[1:]] = v
-        # там должен быть либо response либо action
-        if ACTION in jaction:
-            # значит это действие
-            action = jaction[ACTION]
-            # действие должно быть действием из списка
+    @staticmethod
+    def from_dict(input_dict):
+        """Наиболее важный метод создания объекта из входного словаря
+        :input_dict: входной словарь
+        :return: объект Jim: Action или Response
+        """
+        # должно быть response или action
+        # если action
+        if ACTION in input_dict:
+            # достаем действие
+            action = input_dict.pop(ACTION)
+            # действие должно быть в списке действий
             if action in ACTIONS:
-                # в зависимости от действия создаем нужный объект
-                # при создании тоже могут быть ошибки если что то криво передали - обработать
-                # удаляем само действие из словаря, чтобы можно было удобнее передать параметры
-                # для этого копируем словарь
-                params = copy.deepcopy(jaction)
-                # можем спокойно удалть действие
-                del params[ACTION]
-                # еще надо удалить время
-                del params[TIME]
                 if action == PRESENCE:
-                    return JimPresence(**params)
-                elif action == MSG:
-                    return JimMessage(**params)
+                    return Jim.try_create(JimPresence, input_dict)
+                elif action == GET_CONTACTS:
+                    return Jim.try_create(JimGetContacts, input_dict)
+                elif action == CONTACT_LIST:
+                    return Jim.try_create(JimContactList, input_dict)
+                elif action == ADD_CONTACT:
+                    return Jim.try_create(JimAddContact, input_dict)
+                elif action == DEL_CONTACT:
+                    return Jim.try_create(JimDelContact, input_dict)
                 elif action == JOIN:
-                    return JimJoin(**params)
+                    return Jim.try_create(JimJoin, input_dict)
                 elif action == LEAVE:
-                    return JimLeave(**params)
+                    return Jim.try_create(JimLeave, input_dict)
                 elif action == QUIT:
-                    return JimQuit()
-                else:
-                    # сюда по логике никогда не должны попадать но для надежности лучше обработать
-                    pass
+                    return Jim.try_create(JimQuit, input_dict)
+                elif action == MSG:
+                    try:
+                        input_dict['from_'] = input_dict['from']
+                    except KeyError:
+                        raise WrongParamsError(input_dict)
+                    del input_dict['from']
+                    return Jim.try_create(JimMessage, input_dict)
             else:
-                # что то не верно - обработать
-                pass
-        elif RESPONSE in jaction:
-            # значит это ответ от сервера
-            # создаем объект ответа - могуть быть ошибки
-            return JimResponse(**jaction)
+                raise WrongActionError(action)
+        elif RESPONSE in input_dict:
+            return Jim.try_create(JimResponse, input_dict)
         else:
-            # пришло что то не то
-            # нужно обработать
-            pass
+            raise WrongDictError(input_dict)
 
 
 class JimAction(Jim):
     # __slots__ = (ACTION, TIME) - со слотами не работает __dict__ - а он нам нужен для перевода в json
 
-    def __init__(self, action):
+    def __init__(self, action, time=None):
         self.action = action
-        self.time = time.time()
+        if time:
+            self.time = time
+        else:
+            self.time = ctime.time()
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[ACTION] = self.action
+        result[TIME] = self.time
+        return result
+
+
+class JimAddContact(JimAction):
+    # Имя пользователя ограничено 25 символов - используем дескриптор
+    account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
+    # Имя пользователя ограничено 25 символов - используем дескриптор
+    user_id = MaxLengthField('user_id', USERNAME_MAX_LENGTH)
+
+    def __init__(self, account_name, user_id, time=None):
+        self.account_name = account_name
+        self.user_id = user_id
+        super().__init__(ADD_CONTACT, time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[ACCOUNT_NAME] = self.account_name
+        result[USER_ID] = self.user_id
+        return result
+
+
+class JimDelContact(JimAction):
+    # Имя пользователя ограничено 25 символов - используем дескриптор
+    account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
+    # Имя пользователя ограничено 25 символов - используем дескриптор
+    user_id = MaxLengthField('user_id', USERNAME_MAX_LENGTH)
+
+    def __init__(self, account_name, user_id, time=None):
+        self.account_name = account_name
+        self.user_id = user_id
+        super().__init__(DEL_CONTACT, time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[ACCOUNT_NAME] = self.account_name
+        result[USER_ID] = self.user_id
+        return result
+
+
+class JimContactList(JimAction):
+    user_id = MaxLengthField('user_id', USERNAME_MAX_LENGTH)
+
+    def __init__(self, user_id, time=None):
+        self.user_id = user_id
+        super().__init__(CONTACT_LIST, time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[USER_ID] = self.user_id
+        return result
+
+
+class JimGetContacts(JimAction):
+    # Имя пользователя ограничено 25 символов - используем дескриптор
+    account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
+
+    def __init__(self, account_name, time=None):
+        self.account_name = account_name
+        super().__init__(GET_CONTACTS, time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[ACCOUNT_NAME] = self.account_name
+        return result
 
 
 class JimPresence(JimAction):
@@ -127,10 +168,14 @@ class JimPresence(JimAction):
 
     # __slots__ = (ACTION, ACCOUNT_NAME, TIME) - дескриптор конфилктует со слотами
 
-
-    def __init__(self, account_name):
+    def __init__(self, account_name, time=None):
         self.account_name = account_name
-        super().__init__(PRESENCE)
+        super().__init__(PRESENCE, time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[ACCOUNT_NAME] = self.account_name
+        return result
 
 
 class JimMessage(JimAction):
@@ -139,43 +184,55 @@ class JimMessage(JimAction):
     from_ = MaxLengthField('from_', USERNAME_MAX_LENGTH)
     message = MaxLengthField('message', MESSAGE_MAX_LENGTH)
 
-    def __init__(self, to, from_, message):
+    def __init__(self, to, from_, message, time=None):
         self.to = to
         self.from_ = from_
         self.message = message
-        super().__init__(MSG)
+        super().__init__(MSG, time=time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[TO] = self.to
+        result[FROM] = self.from_
+        result[MESSAGE] = self.message
+        return result
 
 
-class JimRoom(JimAction):
+class JimJoin(JimAction):
     # __slots__ = (ACTION, TIME, TO, FROM, MESSAGE)
     room = MaxLengthField('room', ROOMNAME_MAX_LENGTH)
 
-    def __init__(self, room, action):
+    def __init__(self, room, time=None):
         self.room = room
-        super().__init__(action)
+        super().__init__(JOIN, time=time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[ROOM] = self.room
+        return result
 
 
-class JimJoin(JimRoom):
-    def __init__(self, room):
-        super().__init__(room, JOIN)
+class JimLeave(JimAction):
+    # __slots__ = (ACTION, TIME, TO, FROM, MESSAGE)
+    room = MaxLengthField('room', ROOMNAME_MAX_LENGTH)
 
+    def __init__(self, room, time=None):
+        self.room = room
+        super().__init__(LEAVE, time=time)
 
-class JimLeave(JimRoom):
-    def __init__(self, room):
-        super().__init__(room, LEAVE)
+    def to_dict(self):
+        result = super().to_dict()
+        result[ROOM] = self.room
+        return result
 
 
 class JimQuit(JimAction):
-    def __init__(self):
-        super().__init__(QUIT)
+    def __init__(self, time=None):
+        super().__init__(QUIT, time=time)
 
-
-class ResponseCodeError(Exception):
-    def __init__(self, code):
-        self.code = code
-
-    def __str__(self):
-        return 'Неверный код ответа {}'.format(self.code)
+    def to_dict(self):
+        result = super().to_dict()
+        return result
 
 
 class ResponseField:
@@ -203,7 +260,19 @@ class JimResponse(Jim):
     # Используем дескриптор для поля ответ от сервера
     response = ResponseField('response')
 
-    def __init__(self, response, error=None, alert=None):
+    def __init__(self, response, error=None, alert=None, quantity=None):
         self.response = response
         self.error = error
         self.alert = alert
+        self.quantity = quantity
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[RESPONSE] = self.response
+        if self.error is not None:
+            result[ERROR] = self.error
+        if self.alert is not None:
+            result[ALERT] = self.alert
+        if self.quantity is not None:
+            result[QUANTITY] = self.quantity
+        return result
