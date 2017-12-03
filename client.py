@@ -8,6 +8,7 @@ from jim.utils import send_message, get_message
 from jim.core import *
 
 from threading import Thread
+import time
 
 
 # class ClientVerifier(type):
@@ -160,14 +161,17 @@ class MessengerClient:
             self.join_room('default_room')
 
             w = Thread(target=self._writer)
-            w.name = 'writer'
+            w.name = 'Writer'
             w.daemon = True
             w.start()
 
             r = Thread(target=self._reader)
-            w.name = 'reader'
+            w.name = 'Reader'
             r.daemon = True
             r.start()
+
+            w.join()
+            r.join()
 
 
 def main():
