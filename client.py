@@ -164,10 +164,10 @@ class MessengerClient:
             w.daemon = True
             w.start()
 
-            # r = Thread(target=self._reader)
-            # w.name = 'reader'
-            # r.daemon = True
-            # r.start()
+            r = Thread(target=self._reader)
+            w.name = 'reader'
+            r.daemon = True
+            r.start()
 
 
 def main():
