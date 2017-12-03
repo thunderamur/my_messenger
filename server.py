@@ -65,17 +65,12 @@ class MessengerServer(object):
             if hasattr(action, ACTION):
 
                 if action.action == GET_CONTACTS:
-                    # нам нужен репозиторий
                     contacts = self.repo.get_contacts(action.account_name)
-                    # формируем ответ
-                    response = JimResponse(ACCEPTED, quantity=len(contacts))
-                    # Отправляем
-                    send_message(sock, response.to_dict())
-                    # в цикле по контактам шлем сообщения
-                    for contact in contacts:
-                        message = JimContactList(contact.Name)
-                        print(message.to_dict())
-                        send_message(sock, message.to_dict())
+                    contact_list = {}
+                    for i in range(len(contacts)):
+                        contact_list.update({i: contacts[i].Name})
+                    send_message(sock, contact_list)
+
                 elif action.action == ADD_CONTACT:
                     user_id = action.user_id
                     username = action.account_name
@@ -90,6 +85,7 @@ class MessengerServer(object):
                         response = JimResponse(WRONG_REQUEST, error='Такого контакта нет')
                         # Отправляем
                         send_message(sock, response.to_dict())
+
                 elif action.action == DEL_CONTACT:
                     user_id = action.user_id
                     username = action.account_name
@@ -105,7 +101,7 @@ class MessengerServer(object):
                         # Отправляем
                         send_message(sock, response.to_dict())
 
-                if action.action == PRESENCE:
+                elif action.action == PRESENCE:
                     send_message(sock, self.presence_response(action))
 
                 elif action.action == MSG:
@@ -130,7 +126,9 @@ class MessengerServer(object):
                     # !!!! дописать удаление клиента из комнат
                     #
                     print('Client {} {} quit'.format(sock.fileno(), sock.getpeername()))
+                    send_message(sock, JimResponse(OK).to_dict())
                     self.clients.remove(sock)
+
             else:
                 print('!!!!!!!!!!!!! NO ACTION !!!!!!!!!!!!!!!!')
                 print(action.__dict__)
@@ -165,8 +163,9 @@ class MessengerServer(object):
                     sock.close()
                     self.clients.remove(sock)
 
-    def run(self, host, port, max_connections = 5):
-        with socket(AF_INET, SOCK_STREAM) as self.socket:
+    def run(self, host, port, max_connections=5):
+        with socket(AF_INET, SOCK_STREAM) as sock:
+            self.socket = sock
             self.socket.bind((host, port))
             self.socket.listen(max_connections)
             self.socket.settimeout(0.2)

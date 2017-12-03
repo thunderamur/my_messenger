@@ -10,6 +10,8 @@ from jim.core import *
 from threading import Thread
 import time
 
+from queue import Queue
+
 
 # class ClientVerifier(type):
 #     """
@@ -55,6 +57,8 @@ class MessengerClient:
         self.user = User(account_name)
         self.socket = None
         self.room = None
+        self._is_alive = True
+        self.responses_queue = Queue()
 
     def presence(self):
         presence = JimPresence(self.user.account_name)
@@ -83,52 +87,37 @@ class MessengerClient:
 
     def command(self, message):
         send_message(self.socket, message.to_dict())
-        response = get_message(self.socket)
-        response = Jim.from_dict(response)
+        response = self.responses_queue.get()
         if response.response == ACCEPTED:
             print('Успешно')
         else:
             print(response.error)
 
     def show_list(self):
-        # запрос на список контактов
         jimmessage = JimGetContacts(self.user.account_name)
-        # отправляем
         send_message(self.socket, jimmessage.to_dict())
-        # получаем ответ
-        response = get_message(self.socket)
-
-        # приводим ответ к ответу сервера
-        response = Jim.from_dict(response)
-        # там лежит количество контактов
-        quantity = response.quantity
-        # делаем цикл и получаем каждый контакт по отдельности
-        print('У вас ', quantity, 'друзей')
-        print('Вот они:')
-        for i in range(quantity):
-            message = get_message(self.socket)
-            message = Jim.from_dict(message)
-            print(message.user_id)
 
     def parse(self, msg):
+        action = Jim.from_dict(msg)
+        print(action.__dict__)
+
+        if hasattr(action, RESPONSE):
+            self.responses_queue.put(action)
+
         print(msg)
-        # if 'action' in msg:
-        #     if msg['action'] == 'msg':
-        #         print(msg['message'])
-        #     else:
-        #         print(msg)
 
     def _reader(self):
-        while True:
+        while self._is_alive:
             msg = get_message(self.socket)
             self.parse(msg)
 
     def _writer(self):
-        while True:
-            text = input('>> ')
+        self.join_room('default_room')
+        while self._is_alive:
+            text = input()
             if text == '<quit>':
                 send_message(self.socket, JimQuit().to_dict())
-                break
+                self._is_alive = False
             elif text == '<leave>':
                 self.leave_room()
             elif text.startswith('<list>'):
@@ -157,8 +146,6 @@ class MessengerClient:
 
             if not self.presence():
                 sys.exit()
-
-            self.join_room('default_room')
 
             w = Thread(target=self._writer)
             w.name = 'Writer'

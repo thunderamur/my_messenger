@@ -54,9 +54,9 @@ def send_message(sock, message):
     :return: None
     """
     # Словарь переводим в байты
-    bprescence = dict_to_bytes(message)
+    bmessage = dict_to_bytes(message)
     # Отправляем
-    sock.send(bprescence)
+    sock.send(bmessage)
 
 
 def get_message(sock):
