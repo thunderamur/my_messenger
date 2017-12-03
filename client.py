@@ -7,6 +7,8 @@ from socket import socket, AF_INET, SOCK_STREAM
 from jim.utils import send_message, get_message
 from jim.core import *
 
+from threading import Thread
+
 
 # class ClientVerifier(type):
 #     """
@@ -115,7 +117,33 @@ class MessengerClient:
         #     else:
         #         print(msg)
 
-    def run(self, host, port, mode = 'r'):
+    def _reader(self):
+        while True:
+            msg = get_message(self.socket)
+            self.parse(msg)
+
+    def _writer(self):
+        while True:
+            text = input('>> ')
+            if text == '<quit>':
+                send_message(self.socket, JimQuit().to_dict())
+                break
+            elif text == '<leave>':
+                self.leave_room()
+            elif text.startswith('<list>'):
+                self.show_list()
+            elif text.startswith('<'):
+                command, param = text.split()
+                if command == '<add>':
+                    self.add_contact(param)
+                elif command == '<del>':
+                    self.del_contact(param)
+                elif command == '<join>':
+                    self.join_room(param)
+            else:
+                send_message(self.socket, JimMessage(self.room, self.user.account_name, text).to_dict())
+
+    def run(self, host, port):
         with socket(AF_INET, SOCK_STREAM) as sock:
             self.socket = sock
 
@@ -129,38 +157,22 @@ class MessengerClient:
             if not self.presence():
                 sys.exit()
 
-            self.join_room('#room_name')
+            self.join_room('default_room')
 
-            if mode == 'w':
-                while True:
-                    text = input('>> ')
-                    if text == '<quit>':
-                        send_message(self.socket, JimQuit().to_dict())
-                        break
-                    elif text == '<leave>':
-                        self.leave_room()
-                    elif text.startswith('<list>'):
-                        self.show_list()
-                    elif text.startswith('<'):
-                        command, param = text.split()
-                        if command == '<add>':
-                            self.add_contact(param)
-                        elif command == '<del>':
-                            self.del_contact(param)
-                        elif command == '<join>':
-                            self.join_room(param)
-                    else:
-                        send_message(self.socket, JimMessage(self.room, self.user.account_name, text).to_dict())
+            w = Thread(target=self._writer)
+            w.name = 'writer'
+            w.daemon = True
+            w.start()
 
-            else:
-                while True:
-                    msg = get_message(self.socket)
-                    self.parse(msg)
+            # r = Thread(target=self._reader)
+            # w.name = 'reader'
+            # r.daemon = True
+            # r.start()
 
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: client.py <addr> [<port>] [-r, -w]')
+        print('Usage: client.py <addr> [<port>]')
         return -1
     host = sys.argv[1]
 
@@ -169,15 +181,8 @@ def main():
         if not sys.argv[2].startswith('-'):
             port = int(sys.argv[2])
 
-    mode = 'r'
-    if '-w' in sys.argv:
-        mode = 'w'
-
-    if mode == 'w':
-        client = MessengerClient('Vasya')
-    else:
-        client = MessengerClient('Petya')
-    client.run(host, port, mode)
+    client = MessengerClient('Vasya')
+    client.run(host, port)
 
 
 if __name__ == '__main__':
