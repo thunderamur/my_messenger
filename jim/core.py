@@ -138,13 +138,15 @@ class JimDelContact(JimAction):
 class JimContactList(JimAction):
     user_id = MaxLengthField('user_id', USERNAME_MAX_LENGTH)
 
-    def __init__(self, user_id, time=None):
+    def __init__(self, user_id, quantity=0, time=None):
         self.user_id = user_id
+        self.quantity = quantity
         super().__init__(CONTACT_LIST, time)
 
     def to_dict(self):
         result = super().to_dict()
         result[USER_ID] = self.user_id
+        result[QUANTITY] = self.quantity
         return result
 
 
@@ -152,13 +154,15 @@ class JimGetContacts(JimAction):
     # Имя пользователя ограничено 25 символов - используем дескриптор
     account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
 
-    def __init__(self, account_name, time=None):
+    def __init__(self, account_name, quantity=0, time=None):
         self.account_name = account_name
+        self.quantity = quantity
         super().__init__(GET_CONTACTS, time)
 
     def to_dict(self):
         result = super().to_dict()
         result[ACCOUNT_NAME] = self.account_name
+        result[QUANTITY] = self.quantity
         return result
 
 
@@ -260,11 +264,10 @@ class JimResponse(Jim):
     # Используем дескриптор для поля ответ от сервера
     response = ResponseField('response')
 
-    def __init__(self, response, error=None, alert=None, quantity=None):
+    def __init__(self, response, error=None, alert=None):
         self.response = response
         self.error = error
         self.alert = alert
-        self.quantity = quantity
 
     def to_dict(self):
         result = super().to_dict()
@@ -273,6 +276,4 @@ class JimResponse(Jim):
             result[ERROR] = self.error
         if self.alert is not None:
             result[ALERT] = self.alert
-        if self.quantity is not None:
-            result[QUANTITY] = self.quantity
         return result

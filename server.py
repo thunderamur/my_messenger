@@ -66,10 +66,14 @@ class MessengerServer(object):
 
                 if action.action == GET_CONTACTS:
                     contacts = self.repo.get_contacts(action.account_name)
-                    contact_list = {}
-                    for i in range(len(contacts)):
-                        contact_list.update({i: contacts[i].Name})
-                    send_message(sock, contact_list)
+                    if action.quantity == 0:
+                        index = 0
+                    else:
+                        index = len(contacts) - action.quantity
+                    quantity = len(contacts) - index - 1
+                    message = JimContactList(contacts[index].Name, quantity)
+                    print(message.to_dict())
+                    send_message(sock, message.to_dict())
 
                 elif action.action == ADD_CONTACT:
                     user_id = action.user_id

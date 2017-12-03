@@ -59,6 +59,7 @@ class MessengerClient:
         self.room = None
         self._is_alive = True
         self.responses_queue = Queue()
+        self.action_queue = Queue()
 
     def presence(self):
         presence = JimPresence(self.user.account_name)
@@ -93,9 +94,12 @@ class MessengerClient:
         else:
             print(response.error)
 
-    def show_list(self):
-        jimmessage = JimGetContacts(self.user.account_name)
-        send_message(self.socket, jimmessage.to_dict())
+    def show_list(self, quantity=0):
+        message = JimGetContacts(self.user.account_name, quantity)
+        send_message(self.socket, message.to_dict())
+        contact_list = self.action_queue.get()
+        if contact_list.quantity > 0:
+            self.show_list(contact_list.quantity)
 
     def parse(self, msg):
         action = Jim.from_dict(msg)
@@ -103,8 +107,8 @@ class MessengerClient:
 
         if hasattr(action, RESPONSE):
             self.responses_queue.put(action)
-
-        print(msg)
+        elif hasattr(action, ACTION):
+            self.action_queue.put(action)
 
     def _reader(self):
         while self._is_alive:
