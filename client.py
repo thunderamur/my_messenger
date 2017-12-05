@@ -43,18 +43,19 @@ from queue import Queue
 #         type.__init__(self, clsname, bases, clsdict)
 
 
-class User:
-    def __init__(self, account_name, status=''):
-        self.account_name = account_name
-        self.status = status
-
 # class MessengerClient(metaclass=ClientVerifier):
 class MessengerClient:
     """
     Класс Клиент - класс, реализующий клиентскую часть системы.
     """
+
+    class User:
+        def __init__(self, account_name, status=''):
+            self.account_name = account_name
+            self.status = status
+
     def __init__(self, account_name):
-        self.user = User(account_name)
+        self.user = self.User(account_name)
         self.socket = None
         self.room = None
         self._is_alive = True
