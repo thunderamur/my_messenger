@@ -1,16 +1,12 @@
 # import time
 import sys
-import dis
+#import dis
 from socket import socket, AF_INET, SOCK_STREAM
+from threading import Thread
+from queue import Queue
 
-# from jim.config import *
 from jim.utils import send_message, get_message
 from jim.core import *
-
-from threading import Thread
-import time
-
-from queue import Queue
 
 
 # class ClientVerifier(type):
