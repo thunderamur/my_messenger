@@ -56,7 +56,6 @@ class MessengerServer(object):
     @log
     def parse(self, requests):
         results = {}
-        message = False
 
         for sock in requests:
             action = Jim.from_dict(requests[sock])
@@ -65,13 +64,18 @@ class MessengerServer(object):
             if hasattr(action, ACTION):
 
                 if action.action == GET_CONTACTS:
+                    # Добавить обработку пустого списка контактов
                     contacts = self.repo.get_contacts(action.account_name)
                     if action.quantity == 0:
                         index = 0
                     else:
                         index = len(contacts) - action.quantity
                     quantity = len(contacts) - index - 1
-                    message = JimContactList(contacts[index].Name, quantity)
+                    if len(contacts) > 0:
+                        name = contacts[index].Name
+                    else:
+                        name = ''
+                    message = JimContactList(name, quantity)
                     print(message.to_dict())
                     send_message(sock, message.to_dict())
 
