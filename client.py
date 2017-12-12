@@ -102,11 +102,8 @@ class MessengerClient:
             else:
                 send_message(self.socket, JimMessage(self.room, self.user.account_name, text).to_dict())
 
-    def get_listener(self):
-        return ConsoleReceiver(self.socket, self.request_queue)
-
     def start_listener(self):
-        self.listener = self.get_listener()
+        self.listener = ConsoleReceiver(self.socket, self.request_queue)
         return start_thread(self.listener.poll, 'Listener')
 
     def start_sender(self):
@@ -139,14 +136,15 @@ class MessengerClient:
             st = self.start_sender()
             pt = self.start_parser()
 
-            lt.join()
+            if lt:
+                lt.join()
             st.join()
             pt.join()
 
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: client.py <addr> [-port=<port>] [-name=<name>]')
+        print('Usage: client.py <addr> [-port=<port>] -name=<name>')
         return -1
     host = sys.argv[1]
     port = 7777
