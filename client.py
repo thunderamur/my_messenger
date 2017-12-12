@@ -24,6 +24,7 @@ class MessengerClient:
         self.room = None
         self.is_alive = False
         self.request_queue = Queue()
+        self.listener = None
 
     def presence(self):
         print('Presence... ', end='')
@@ -70,20 +71,13 @@ class MessengerClient:
         if contact_list.quantity > 0:
             self.contact_list_request(contact_list.quantity)
 
-    def show_message(self, message):
-        print("{} ({}): {}".format(message.from_, time.strftime('%H:%M:%S'), message.message))
-
-    def listener(self):
+    def parser(self):
         while self.is_alive:
-            data = get_message(self.socket)
-            jm = Jim.from_dict(data)
-            print(jm.__dict__)
+            jm = self.request_queue.get()
             if isinstance(jm, JimResponse):
                 self.response(jm)
             elif isinstance(jm, JimContactList):
                 self.contact_list_result(jm)
-            elif isinstance(jm, JimMessage):
-                self.show_message(jm)
 
     def sender(self):
         self.join_room('default_room')
@@ -91,7 +85,8 @@ class MessengerClient:
             text = input()
             if text == '<quit>':
                 send_message(self.socket, JimQuit().to_dict())
-                self.is_alive = False
+                self.stop()
+
             elif text == '<leave>':
                 self.leave_room()
             elif text.startswith('<list>'):
@@ -107,11 +102,22 @@ class MessengerClient:
             else:
                 send_message(self.socket, JimMessage(self.room, self.user.account_name, text).to_dict())
 
+    def get_listener(self):
+        return ConsoleReceiver(self.socket, self.request_queue)
+
     def start_listener(self):
-        return start_thread(self.listener, 'Listener')
+        self.listener = self.get_listener()
+        return start_thread(self.listener.poll, 'Listener')
 
     def start_sender(self):
         return start_thread(self.sender, 'Sender')
+
+    def start_parser(self):
+        return start_thread(self.parser, 'Parser')
+
+    def stop(self):
+        self.is_alive = False
+        self.listener.stop()
 
     def run(self, host, port):
         with socket(AF_INET, SOCK_STREAM) as sock:
@@ -131,9 +137,11 @@ class MessengerClient:
 
             lt = self.start_listener()
             st = self.start_sender()
+            pt = self.start_parser()
 
             lt.join()
             st.join()
+            pt.join()
 
 
 def main():

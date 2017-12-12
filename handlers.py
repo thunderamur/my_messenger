@@ -31,7 +31,7 @@ class Receiver:
 
 class ConsoleReceiver(Receiver):
     def show_message(self, message):
-        print("\n{} ({}): {}".format(message.from_, time.strftime('%H:%M:%S'), message.message))
+        print("{} ({}): {}".format(message.from_, time.strftime('%H:%M:%S'), message.message))
 
 
 class GuiReceiver(Receiver, QObject):
