@@ -1,4 +1,4 @@
-# import time
+import time
 import sys
 #import dis
 from socket import socket, AF_INET, SOCK_STREAM
@@ -8,43 +8,11 @@ from queue import Queue
 from jim.utils import send_message, get_message
 from jim.core import *
 
-
-# class ClientVerifier(type):
-#     """
-#     4. *Реализовать метакласс ClientVerifier, выполняющий базовую проверку класса Клиент
-#         (для некоторых проверок уместно использовать модуль dis):
-#
-#         отсутствие вызовов accept и listen для сокетов
-#         использование сокетов для работы по TCP
-#         отсутствие создания сокетов на уровне классов, т.е. отсутствие конструкций вида:
-#
-#     class Client:
-#         s = socket()
-#         ...
-#     """
-#     def __init__(self, clsname, bases, clsdict):
-#         for key, value in clsdict.items():
-#             # Пропустить специальные и частные методы
-#             if key.startswith('__'): continue
-#
-#             # Пропустить любые невызываемые объекты
-#             if not hasattr(value, '__call__'): continue
-#
-#             # Проверить наличие строки документирования
-#             # if not getattr(value, '__doc__'):
-#             #     raise TypeError('Метод {} должен иметь строку документации'.format(key))
-#
-#             print(key, dis.code_info(value), end='\n\n\n\n\n')
-#
-#         type.__init__(self, clsname, bases, clsdict)
+from handlers import ConsoleReceiver
+from utils import start_thread
 
 
-# class MessengerClient(metaclass=ClientVerifier):
 class MessengerClient:
-    """
-    Класс Клиент - класс, реализующий клиентскую часть системы.
-    """
-
     class User:
         def __init__(self, account_name, status=''):
             self.account_name = account_name
@@ -54,75 +22,80 @@ class MessengerClient:
         self.user = self.User(account_name)
         self.socket = None
         self.room = None
-        self._is_alive = True
-        self.responses_queue = Queue()
-        self.action_queue = Queue()
+        self.is_alive = False
+        self.request_queue = Queue()
 
     def presence(self):
+        print('Presence... ', end='')
         presence = JimPresence(self.user.account_name)
         send_message(self.socket, presence.to_dict())
         response = get_message(self.socket)
         response = Jim.from_dict(response).to_dict()
         if response['response'] == OK:
+            print('OK')
             return True
 
     def join_room(self, room):
         self.room = room
         message = JimJoin(self.room)
-        self.command(message)
+        self.request(message)
 
     def leave_room(self):
         message = JimLeave(self.room)
-        self.command(message)
+        self.request(message)
 
     def add_contact(self, param):
         message = JimAddContact(self.user.account_name, param)
-        self.command(message)
+        self.request(message)
 
     def del_contact(self, param):
         message = JimDelContact(self.user.account_name, param)
-        self.command(message)
+        self.request(message)
 
-    def command(self, message):
+    def request(self, message):
         send_message(self.socket, message.to_dict())
-        response = self.responses_queue.get()
+
+    @staticmethod
+    def response(response):
         if response.response == ACCEPTED:
             print('Успешно')
-        else:
+        elif response.error is not None:
             print(response.error)
 
-    def show_list(self, quantity=0):
+    def contact_list_request(self, quantity=0):
         message = JimGetContacts(self.user.account_name, quantity)
-        send_message(self.socket, message.to_dict())
-        contact_list = self.action_queue.get()
+        self.request(message)
+
+    def contact_list_result(self, contact_list):
         if contact_list.quantity > 0:
-            self.show_list(contact_list.quantity)
+            self.contact_list_request(contact_list.quantity)
 
-    def parse(self, msg):
-        action = Jim.from_dict(msg)
-        print(action.__dict__)
+    def show_message(self, message):
+        print("{} ({}): {}".format(message.from_, time.strftime('%H:%M:%S'), message.message))
 
-        if hasattr(action, RESPONSE):
-            self.responses_queue.put(action)
-        elif hasattr(action, ACTION):
-            self.action_queue.put(action)
+    def listener(self):
+        while self.is_alive:
+            data = get_message(self.socket)
+            jm = Jim.from_dict(data)
+            print(jm.__dict__)
+            if isinstance(jm, JimResponse):
+                self.response(jm)
+            elif isinstance(jm, JimContactList):
+                self.contact_list_result(jm)
+            elif isinstance(jm, JimMessage):
+                self.show_message(jm)
 
-    def _reader(self):
-        while self._is_alive:
-            msg = get_message(self.socket)
-            self.parse(msg)
-
-    def _writer(self):
+    def sender(self):
         self.join_room('default_room')
-        while self._is_alive:
+        while self.is_alive:
             text = input()
             if text == '<quit>':
                 send_message(self.socket, JimQuit().to_dict())
-                self._is_alive = False
+                self.is_alive = False
             elif text == '<leave>':
                 self.leave_room()
             elif text.startswith('<list>'):
-                self.show_list()
+                self.contact_list_request()
             elif text.startswith('<'):
                 command, param = text.split()
                 if command == '<add>':
@@ -133,6 +106,12 @@ class MessengerClient:
                     self.join_room(param)
             else:
                 send_message(self.socket, JimMessage(self.room, self.user.account_name, text).to_dict())
+
+    def start_listener(self):
+        return start_thread(self.listener, 'Listener')
+
+    def start_sender(self):
+        return start_thread(self.sender, 'Sender')
 
     def run(self, host, port):
         with socket(AF_INET, SOCK_STREAM) as sock:
@@ -147,33 +126,31 @@ class MessengerClient:
 
             if not self.presence():
                 sys.exit()
+                
+            self.is_alive = True
 
-            w = Thread(target=self._writer)
-            w.name = 'Writer'
-            w.daemon = True
-            w.start()
+            lt = self.start_listener()
+            st = self.start_sender()
 
-            r = Thread(target=self._reader)
-            w.name = 'Reader'
-            r.daemon = True
-            r.start()
-
-            w.join()
-            r.join()
+            lt.join()
+            st.join()
 
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: client.py <addr> [<port>]')
+        print('Usage: client.py <addr> [-port=<port>] [-name=<name>]')
         return -1
     host = sys.argv[1]
-
     port = 7777
-    if len(sys.argv) == 3:
-        if not sys.argv[2].startswith('-'):
-            port = int(sys.argv[2])
 
-    client = MessengerClient('Vasya')
+    for option in sys.argv[2:]:
+        key, val = option.split('=')
+        if key == '-port':
+            port = val
+        elif key == '-name':
+            name = val
+
+    client = MessengerClient(name)
     client.run(host, port)
 
 

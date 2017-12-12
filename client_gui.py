@@ -1,21 +1,26 @@
 import sys
-from PyQt5 import QtWidgets
-from threading import Thread
+from PyQt5 import QtWidgets, uic
+from PyQt5.QtCore import Qt, QThread, pyqtSlot
 from queue import Queue
 
 from client import MessengerClient
 import gui.MyMessengerUI
-
 from jim.core import *
-
-buffer = Queue()
+from handlers import GuiReceiver
 
 
 class MessengerGUI(MessengerClient):
-    def parse(self, msg):
-        super().parse(msg)
-        action = Jim.from_dict(msg)
-        buffer.put(action)
+    def get_listener(self):
+        return GuiReceiver(self.socket, self.request_queue)
+
+
+@pyqtSlot(str)
+def update_chat(data):
+    try:
+        msg = data
+        window.listWidgetMessages.addItem(msg)
+    except Exception as e:
+        print(e)
 
 
 def run_gui():
