@@ -11,8 +11,8 @@ from utils import start_thread
 
 
 class MessengerGUI(MessengerClient):
-    def __init__(self, account_name):
-        super().__init__(account_name)
+    def __init__(self, account_name, password):
+        super().__init__(account_name, password)
         self.window = None
         self.app = None
         
@@ -45,21 +45,29 @@ class MessengerGUI(MessengerClient):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print('Usage: client.py <addr> [-port=<port>] -name=<name>')
+    host = None
+    port = None
+    name = None
+    password = None
+    if len(sys.argv) >= 4:
+        host = sys.argv[1]
+        port = 7777
+
+        for option in sys.argv[2:]:
+            key, val = option.split('=')
+            if key == '-port':
+                port = val
+            elif key == '-name':
+                name = val
+            elif key == '-password':
+                password = val
+
+    if host and port and name and password:
+        client = MessengerGUI(name, password)
+        client.run(host, port)
+    else:
+        print('Usage: client.py <addr> [-port=<port>] -name=<name> -password=<password>')
         return -1
-    host = sys.argv[1]
-    port = 7777
-
-    for option in sys.argv[2:]:
-        key, val = option.split('=')
-        if key == '-port':
-            port = val
-        elif key == '-name':
-            name = val
-
-    client = MessengerGUI(name)
-    client.run(host, port)
 
 
 if __name__ == '__main__':
