@@ -55,3 +55,11 @@ class ResponseCodeError(Exception):
 
     def __str__(self):
         return 'Wrong response code: {}'.format(self.code)
+
+
+class IsNotJimUser(Exception):
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __str__(self):
+        return '{} is not instance of JimUser class'.format(self.obj)

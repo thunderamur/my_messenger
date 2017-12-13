@@ -31,11 +31,13 @@ class Client(Base):
     ClientId = Column(Integer, primary_key=True)
     # Имя клиента
     Name = Column(String, unique=True)
+    Password = Column(String)
     # Информация не обязательное поле
     Info = Column(String, nullable=True)
 
-    def __init__(self, name, info=None):
+    def __init__(self, name, password, info=None):
         self.Name = name
+        self.Password = password
         if info:
             self.Info = info
 

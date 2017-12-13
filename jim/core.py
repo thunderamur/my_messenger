@@ -1,6 +1,7 @@
 import time as ctime
 from .config import *
-from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDictError, ResponseCodeError
+from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDictError, ResponseCodeError, \
+    IsNotJimUser
 
 
 class MaxLengthField:
@@ -52,7 +53,15 @@ class Jim:
             # действие должно быть в списке действий
             if action in ACTIONS:
                 if action == PRESENCE:
+                    user_dict = input_dict.pop(USER)
+                    user = JimUser(user_dict[ACCOUNT_NAME])
+                    input_dict.update({USER: user})
                     return Jim.try_create(JimPresence, input_dict)
+                elif action == AUTHENTICATE:
+                    user_dict = input_dict.pop(USER)
+                    user = JimUser(user_dict[ACCOUNT_NAME], user_dict[PASSWORD])
+                    input_dict.update({USER: user})
+                    return Jim.try_create(JimAuthenticate, input_dict)
                 elif action == GET_CONTACTS:
                     return Jim.try_create(JimGetContacts, input_dict)
                 elif action == CONTACT_LIST:
@@ -167,23 +176,19 @@ class JimGetContacts(JimAction):
 
 
 class JimPresence(JimAction):
-    # Имя пользователя ограничено 25 символов - используем дескриптор
-    account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
-
-    # __slots__ = (ACTION, ACCOUNT_NAME, TIME) - дескриптор конфилктует со слотами
-
-    def __init__(self, account_name, time=None):
-        self.account_name = account_name
+    def __init__(self, user, time=None):
+        if not isinstance(user, JimUser):
+            raise IsNotJimUser
+        self.user = user
         super().__init__(PRESENCE, time)
 
     def to_dict(self):
         result = super().to_dict()
-        result[ACCOUNT_NAME] = self.account_name
+        result[USER] = self.user.to_dict(PRESENCE)
         return result
 
 
 class JimMessage(JimAction):
-    # __slots__ = (ACTION, TIME, TO, FROM, MESSAGE)
     to = MaxLengthField('to', USERNAME_MAX_LENGTH)
     from_ = MaxLengthField('from_', USERNAME_MAX_LENGTH)
     message = MaxLengthField('message', MESSAGE_MAX_LENGTH)
@@ -203,7 +208,6 @@ class JimMessage(JimAction):
 
 
 class JimJoin(JimAction):
-    # __slots__ = (ACTION, TIME, TO, FROM, MESSAGE)
     room = MaxLengthField('room', ROOMNAME_MAX_LENGTH)
 
     def __init__(self, room, time=None):
@@ -217,7 +221,6 @@ class JimJoin(JimAction):
 
 
 class JimLeave(JimAction):
-    # __slots__ = (ACTION, TIME, TO, FROM, MESSAGE)
     room = MaxLengthField('room', ROOMNAME_MAX_LENGTH)
 
     def __init__(self, room, time=None):
@@ -236,6 +239,19 @@ class JimQuit(JimAction):
 
     def to_dict(self):
         result = super().to_dict()
+        return result
+
+
+class JimAuthenticate(JimAction):
+    def __init__(self, user, time=None):
+        if not isinstance(user, JimUser):
+            raise IsNotJimUser
+        self.user = user
+        super().__init__(AUTHENTICATE, time)
+
+    def to_dict(self):
+        result = super().to_dict()
+        result[USER] = self.user.to_dict(AUTHENTICATE)
         return result
 
 
@@ -276,4 +292,23 @@ class JimResponse(Jim):
             result[ERROR] = self.error
         if self.alert is not None:
             result[ALERT] = self.alert
+        return result
+
+
+class JimUser:
+    account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
+    password = MaxLengthField('password', PASSWORD_MAX_LENGTH)
+
+    def __init__(self, account_name, password='', status=''):
+        self.account_name = account_name
+        self.password = password
+        self.status = status
+
+    def to_dict(self, action):
+        result = {}
+        result[ACCOUNT_NAME] = self.account_name
+        if action == PRESENCE:
+            result[STATUS] = self.status
+        elif action == AUTHENTICATE:
+            result[PASSWORD] = self.password
         return result

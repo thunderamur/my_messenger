@@ -9,17 +9,14 @@ from jim.utils import send_message, get_message
 from jim.core import *
 
 from handlers import ConsoleReceiver
-from utils import start_thread
+from utils import start_thread, get_hash
+
+from client_errors import PresenceFail, AuthenticateFail
 
 
 class MessengerClient:
-    class User:
-        def __init__(self, account_name, status=''):
-            self.account_name = account_name
-            self.status = status
-
-    def __init__(self, account_name):
-        self.user = self.User(account_name)
+    def __init__(self, account_name, password):
+        self.user = JimUser(account_name, get_hash(password))
         self.socket = None
         self.room = None
         self.is_alive = False
@@ -28,13 +25,25 @@ class MessengerClient:
 
     def presence(self):
         print('Presence... ', end='')
-        presence = JimPresence(self.user.account_name)
+        presence = JimPresence(self.user)
         send_message(self.socket, presence.to_dict())
         response = get_message(self.socket)
         response = Jim.from_dict(response).to_dict()
         if response['response'] == OK:
             print('OK')
             return True
+
+    def authenticate(self):
+        print('Authenticate... ', end='')
+        authenticate = JimAuthenticate(self.user)
+        send_message(self.socket, authenticate.to_dict())
+        response = get_message(self.socket)
+        response = Jim.from_dict(response).to_dict()
+        if response['response'] == OK:
+            print('OK')
+        else:
+            print('FAIL')
+            raise AuthenticateFail(response)
 
     def join_room(self, room):
         self.room = room
@@ -59,7 +68,7 @@ class MessengerClient:
     @staticmethod
     def response(response):
         if response.response == ACCEPTED:
-            print('Успешно')
+            pass
         elif response.error is not None:
             print(response.error)
 
@@ -127,7 +136,10 @@ class MessengerClient:
                 print('Check IP and port parameters.')
                 return False
 
-            if not self.presence():
+            try:
+                self.authenticate()
+            except AuthenticateFail as e:
+                print(e)
                 sys.exit()
                 
             self.is_alive = True
@@ -143,21 +155,29 @@ class MessengerClient:
 
 
 def main():
-    if len(sys.argv) < 2:
-        print('Usage: client.py <addr> [-port=<port>] -name=<name>')
+    host = None
+    port = None
+    name = None
+    password = None
+    if len(sys.argv) >= 4:
+        host = sys.argv[1]
+        port = 7777
+
+        for option in sys.argv[2:]:
+            key, val = option.split('=')
+            if key == '-port':
+                port = val
+            elif key == '-name':
+                name = val
+            elif key == '-password':
+                password = val
+
+    if host and port and name and password:
+        client = MessengerClient(name, password)
+        client.run(host, port)
+    else:
+        print('Usage: client.py <addr> [-port=<port>] -name=<name> -password=<password>')
         return -1
-    host = sys.argv[1]
-    port = 7777
-
-    for option in sys.argv[2:]:
-        key, val = option.split('=')
-        if key == '-port':
-            port = val
-        elif key == '-name':
-            name = val
-
-    client = MessengerClient(name)
-    client.run(host, port)
 
 
 if __name__ == '__main__':

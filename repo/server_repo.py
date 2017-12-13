@@ -12,9 +12,9 @@ class Repo:
         """
         self.session = session
 
-    def add_client(self, username, info=None):
+    def add_client(self, username, password, info=None):
         """Добавление клиента"""
-        new_item = Client(username, info)
+        new_item = Client(username, password, info)
         self.session.add(new_item)
         self.session.commit()
 

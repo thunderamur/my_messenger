@@ -11,7 +11,7 @@ from chat.chat import Chat
 
 from repo.server_models import session
 from repo.server_repo import Repo
-from repo.server_errors import ContactDoesNotExist
+from repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
 
 # import logging
 from log.server_log_config import server_logger
@@ -40,10 +40,39 @@ class MessengerServer(object):
         """
         # Делаем проверки
         try:
-            username = presence.account_name
+            username = presence.user.account_name
+            status = presence.user.status
+            #
+            # Добавить ведение статуса пользователя
+            #
+        except Exception as e:
+            # Шлем код ошибки
+            response = JimResponse(WRONG_REQUEST, error=str(e))
+            return response.to_dict()
+        else:
+            # Если всё хорошо шлем ОК
+            response = JimResponse(OK)
+            return response.to_dict()
+
+    def authenticate_response(self, authenticate):
+        """
+        Формирование ответа клиенту
+        :param presence_message: Словарь presence запроса
+        :return: Словарь ответа
+        """
+        # Делаем проверки
+        try:
+            username = authenticate.user.account_name
+            password = authenticate.user.password
             # сохраняем пользователя в базу если его там еще нет
             if not self.repo.client_exists(username):
-                self.repo.add_client(username)
+                self.repo.add_client(username, password)
+            client = self.repo.get_client_by_username(username)
+            if client.Password != password:
+                raise WrongLoginOrPassword
+        except WrongLoginOrPassword as e:
+            response = JimResponse(WRONG_LOGIN_OR_PASSWORD, error=str(e))
+            return response.to_dict()
         except Exception as e:
             # Шлем код ошибки
             response = JimResponse(WRONG_REQUEST, error=str(e))
@@ -111,6 +140,10 @@ class MessengerServer(object):
 
                 elif action.action == PRESENCE:
                     send_message(sock, self.presence_response(action))
+
+                elif action.action == AUTHENTICATE:
+                    print(AUTHENTICATE)
+                    send_message(sock, self.authenticate_response(action))
 
                 elif action.action == MSG:
                     self.rooms[action.to].put(sock, action)
