@@ -60,52 +60,60 @@
      </rect>
     </property>
    </widget>
-   <widget class="QTextEdit" name="textEditChat">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>40</y>
-      <width>381</width>
-      <height>251</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="labelChat">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>10</y>
-      <width>381</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Чат не выбран</string>
-    </property>
-   </widget>
    <widget class="QTextEdit" name="textEditChatInput">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>220</x>
       <y>300</y>
-      <width>291</width>
-      <height>51</height>
+      <width>271</width>
+      <height>41</height>
      </rect>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButtonChatSend">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>500</x>
       <y>300</y>
-      <width>85</width>
-      <height>51</height>
+      <width>81</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
      <string>Отправить</string>
     </property>
    </widget>
+   <widget class="QListWidget" name="listWidgetMessages">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>40</y>
+      <width>361</width>
+      <height>251</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBoxChatName">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>10</y>
+      <width>381</width>
+      <height>341</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Чат не выбран</string>
+    </property>
+   </widget>
+   <zorder>pushButtonAddContact</zorder>
+   <zorder>pushButtonContactList</zorder>
+   <zorder>lineEditAddContact</zorder>
+   <zorder>listViewContactList</zorder>
+   <zorder>groupBoxChatName</zorder>
+   <zorder>listWidgetMessages</zorder>
+   <zorder>pushButtonChatSend</zorder>
+   <zorder>textEditChatInput</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

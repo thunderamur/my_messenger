@@ -18,6 +18,7 @@ class MessengerGUI(MessengerClient):
         
     def start_listener(self):
         self.listener = GuiReceiver(self.socket, self.request_queue)
+        self.listener.gotData.connect(self.update_chat)
         th = QThread()
         self.listener.moveToThread(th)
         th.started.connect(self.listener.poll)
@@ -39,8 +40,6 @@ class MessengerGUI(MessengerClient):
         ui = gui.MyMessengerUI.Ui_MainWindow()
         ui.setupUi(self.window)
 
-        self.listener.gotData.connect(self.update_chat)
-    
         self.window.show()
         sys.exit(self.app.exec_())
 
