@@ -9,7 +9,7 @@ from jim.utils import send_message, get_message
 from jim.core import *
 
 from handlers import ConsoleReceiver
-from utils import start_thread, get_hash
+from utils import start_thread, get_hash, app_start
 
 from client_errors import PresenceFail, AuthenticateFail
 
@@ -154,31 +154,5 @@ class MessengerClient:
             pt.join()
 
 
-def main():
-    host = None
-    port = None
-    name = None
-    password = None
-    if len(sys.argv) >= 4:
-        host = sys.argv[1]
-        port = 7777
-
-        for option in sys.argv[2:]:
-            key, val = option.split('=')
-            if key == '-port':
-                port = val
-            elif key == '-name':
-                name = val
-            elif key == '-password':
-                password = val
-
-    if host and port and name and password:
-        client = MessengerClient(name, password)
-        client.run(host, port)
-    else:
-        print('Usage: client.py <addr> [-port=<port>] -name=<name> -password=<password>')
-        return -1
-
-
 if __name__ == '__main__':
-    main()
+    app_start(MessengerClient)

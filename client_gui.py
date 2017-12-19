@@ -7,10 +7,10 @@ from client import MessengerClient
 import gui.MyMessengerUI
 from jim.core import *
 from handlers import GuiReceiver
-from utils import start_thread
+from utils import start_thread, app_start
 
 
-class MessengerGUI(MessengerClient):
+class MessengerClientGUI(MessengerClient):
     def __init__(self, account_name, password):
         super().__init__(account_name, password)
         self.window = None
@@ -44,31 +44,5 @@ class MessengerGUI(MessengerClient):
         sys.exit(self.app.exec_())
 
 
-def main():
-    host = None
-    port = None
-    name = None
-    password = None
-    if len(sys.argv) >= 4:
-        host = sys.argv[1]
-        port = 7777
-
-        for option in sys.argv[2:]:
-            key, val = option.split('=')
-            if key == '-port':
-                port = val
-            elif key == '-name':
-                name = val
-            elif key == '-password':
-                password = val
-
-    if host and port and name and password:
-        client = MessengerGUI(name, password)
-        client.run(host, port)
-    else:
-        print('Usage: client.py <addr> [-port=<port>] -name=<name> -password=<password>')
-        return -1
-
-
 if __name__ == '__main__':
-    main()
+    app_start(MessengerClientGUI)
