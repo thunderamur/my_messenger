@@ -42,5 +42,5 @@ def app_start(client_class):
         client = client_class(name, password)
         client.run(host, port)
     else:
-        print('Usage: client.py <addr> [-port=<port>] -name=<name> -password=<password>')
+        print('Usage: client.py <addr> [-port=<port>] -user=<user> -pass=<password>')
         return -1
