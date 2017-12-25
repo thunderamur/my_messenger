@@ -13,36 +13,38 @@ from utils import start_thread, app_start
 class MessengerClientGUI(MessengerClient):
     def __init__(self, account_name, password):
         super().__init__(account_name, password)
-        self.window = None
-        self.app = None
-        
+        self.thread = None
+
     def start_listener(self):
         self.listener = GuiReceiver(self.socket, self.request_queue)
-        self.listener.gotData.connect(self.update_chat)
-        th = QThread()
-        self.listener.moveToThread(th)
-        th.started.connect(self.listener.poll)
-        th.start()
-
-    @pyqtSlot(str)
-    def update_chat(self, data):
-        try:
-            msg = data
-            self.window.listWidgetMessages.addItem(msg)
-        except Exception as e:
-            print(e)
+        self.listener.gotData.connect(update_chat)
+        self.thread = QThread()
+        self.listener.moveToThread(self.thread)
+        self.thread.started.connect(self.listener.poll)
+        self.thread.start()
 
     def run(self, host, port):
         start_thread(super().run, 'ClientThread', host, port)
 
-        self.app = QtWidgets.QApplication(sys.argv)
-        self.window = QtWidgets.QMainWindow()
-        ui = gui.MyMessengerUI.Ui_MainWindow()
-        ui.setupUi(self.window)
 
-        self.window.show()
-        sys.exit(self.app.exec_())
+@pyqtSlot(str)
+def update_chat(data):
+    print('update_chat')
+    try:
+        msg = data
+        print(msg)
+        window.listWidgetMessages.addItem(msg)
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
     app_start(MessengerClientGUI)
+
+    app = QtWidgets.QApplication(sys.argv)
+    window = QtWidgets.QMainWindow()
+    ui = gui.MyMessengerUI.Ui_MainWindow()
+    ui.setupUi(window)
+
+    window.show()
+    sys.exit(app.exec_())

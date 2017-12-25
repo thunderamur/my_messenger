@@ -43,7 +43,8 @@ class GuiReceiver(Receiver, QObject):
         QObject.__init__(self)
 
     def show_message(self, message):
-        text = '{} ({}):\n {}'.format(message.from_, time.strftime('%H:%M:%S'), message.message)
+        text = '{} ({}): {}'.format(message.from_, time.strftime('%H:%M:%S'), message.message)
+        print(text)
         self.gotData.emit(text)
 
     def poll(self):
