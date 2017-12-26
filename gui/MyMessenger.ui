@@ -50,16 +50,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QListView" name="listViewContactList">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>191</width>
-      <height>281</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QTextEdit" name="textEditChatInput">
     <property name="geometry">
      <rect>
@@ -106,14 +96,24 @@
      <string>Чат не выбран</string>
     </property>
    </widget>
+   <widget class="QListWidget" name="listWidgetContactList">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>201</width>
+      <height>261</height>
+     </rect>
+    </property>
+   </widget>
    <zorder>pushButtonAddContact</zorder>
    <zorder>pushButtonContactList</zorder>
    <zorder>lineEditAddContact</zorder>
-   <zorder>listViewContactList</zorder>
    <zorder>groupBoxChatName</zorder>
    <zorder>listWidgetMessages</zorder>
    <zorder>pushButtonChatSend</zorder>
    <zorder>textEditChatInput</zorder>
+   <zorder>listWidgetContactList</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

@@ -14,6 +14,9 @@ class Receiver:
     def show_message(self, message):
         pass
 
+    def show_contact_list(self, message):
+        pass
+
     def poll(self):
         self.is_alive = True
         while self.is_alive:
@@ -22,6 +25,8 @@ class Receiver:
             print(jm.__dict__)
             if isinstance(jm, JimMessage):
                 self.show_message(jm)
+            elif isinstance(jm, JimContactList):
+                self.show_contact_list(jm)
             else:
                 self.request_queue.put(jm)
 
@@ -33,19 +38,25 @@ class ConsoleReceiver(Receiver):
     def show_message(self, message):
         print("{} ({}): {}".format(message.from_, time.strftime('%H:%M:%S'), message.message))
 
+    def show_contact_list(self, message):
+        print(message.user_id)
+
 
 class GuiReceiver(Receiver, QObject):
-    gotData = pyqtSignal(str)
+    gotMessage = pyqtSignal(str)
     finished = pyqtSignal(int)
+    gotContactList = pyqtSignal(str)
 
     def __init__(self, sock, request_queue):
         Receiver.__init__(self, sock, request_queue)
         QObject.__init__(self)
 
     def show_message(self, message):
-        text = '{} ({}): {}'.format(message.from_, time.strftime('%H:%M:%S'), message.message)
-        print(text)
-        self.gotData.emit(text)
+        text = '{} ({}):\n{}'.format(message.from_, time.strftime('%H:%M:%S'), message.message)
+        self.gotMessage.emit(text)
+
+    def show_contact_list(self, message):
+        self.gotContactList.emit(message.user_id)
 
     def poll(self):
         super().poll()

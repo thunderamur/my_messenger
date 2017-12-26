@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MyMessenger.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.1
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -23,9 +23,6 @@ class Ui_MainWindow(object):
         self.lineEditAddContact = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEditAddContact.setGeometry(QtCore.QRect(10, 10, 191, 27))
         self.lineEditAddContact.setObjectName("lineEditAddContact")
-        self.listViewContactList = QtWidgets.QListView(self.centralwidget)
-        self.listViewContactList.setGeometry(QtCore.QRect(10, 70, 191, 281))
-        self.listViewContactList.setObjectName("listViewContactList")
         self.textEditChatInput = QtWidgets.QTextEdit(self.centralwidget)
         self.textEditChatInput.setGeometry(QtCore.QRect(220, 300, 271, 41))
         self.textEditChatInput.setObjectName("textEditChatInput")
@@ -38,14 +35,17 @@ class Ui_MainWindow(object):
         self.groupBoxChatName = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBoxChatName.setGeometry(QtCore.QRect(210, 10, 381, 341))
         self.groupBoxChatName.setObjectName("groupBoxChatName")
+        self.listWidgetContactList = QtWidgets.QListWidget(self.centralwidget)
+        self.listWidgetContactList.setGeometry(QtCore.QRect(10, 80, 201, 261))
+        self.listWidgetContactList.setObjectName("listWidgetContactList")
         self.pushButtonAddContact.raise_()
         self.pushButtonContactList.raise_()
         self.lineEditAddContact.raise_()
-        self.listViewContactList.raise_()
         self.groupBoxChatName.raise_()
         self.listWidgetMessages.raise_()
         self.pushButtonChatSend.raise_()
         self.textEditChatInput.raise_()
+        self.listWidgetContactList.raise_()
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 600, 27))

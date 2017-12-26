@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QThread, pyqtSlot
 from queue import Queue
+import time
 
 from client import MessengerClient
 import gui.MyMessengerUI
@@ -16,30 +17,48 @@ class MessengerClientGUI(MessengerClient):
         self.thread = None
 
     def start_listener(self):
-        self.listener = GuiReceiver(self.socket, self.request_queue)
-        self.listener.gotData.connect(update_chat)
-        self.thread = QThread()
-        self.listener.moveToThread(self.thread)
-        self.thread.started.connect(self.listener.poll)
-        self.thread.start()
+        return None
 
     def run(self, host, port):
         start_thread(super().run, 'ClientThread', host, port)
+        # **************
+        # Переделать!!!
+        time.sleep(1)
+        self.contact_list_request()
+        # **************
 
 
 @pyqtSlot(str)
-def update_chat(data):
-    print('update_chat')
+def update_chat(msg):
+    update_item(ui.listWidgetMessages, msg)
+
+
+@pyqtSlot(str)
+def update_contact_list(msg):
+    update_item(ui.listWidgetContactList, msg)
+
+
+def update_item(item, msg):
     try:
-        msg = data
         print(msg)
-        window.listWidgetMessages.addItem(msg)
+        item.addItem(msg)
     except Exception as e:
         print(e)
 
 
 if __name__ == '__main__':
-    app_start(MessengerClientGUI)
+    client = app_start(MessengerClientGUI)
+
+    while not client.socket:
+        pass
+
+    listener = GuiReceiver(client.socket, client.request_queue)
+    listener.gotMessage.connect(update_chat)
+    listener.gotContactList.connect(update_contact_list)
+    thread = QThread()
+    listener.moveToThread(thread)
+    thread.started.connect(listener.poll)
+    thread.start()
 
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QMainWindow()
