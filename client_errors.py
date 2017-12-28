@@ -2,6 +2,7 @@ class PresenceFail(Exception):
     pass
 
 class AuthenticateFail(Exception):
+    """Ошибка аутентификации."""
     def __init__(self, response):
         self.response = response
 

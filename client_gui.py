@@ -12,14 +12,14 @@ from utils import start_thread, app_start
 
 
 class MessengerClientGUI(MessengerClient):
-    def __init__(self, account_name, password):
-        super().__init__(account_name, password)
-        self.thread = None
+    """Графический клиент."""
 
     def start_listener(self):
+        """Перегрузка метода родителя. Получатель сообщений заменен."""
         return None
 
     def run(self, host, port):
+        """Расширение метода родителя. Запуск клиента."""
         start_thread(super().run, 'ClientThread', host, port)
         # **************
         # Переделать!!!
@@ -30,18 +30,21 @@ class MessengerClientGUI(MessengerClient):
 
 @pyqtSlot(str)
 def update_chat(msg):
+    """Обновление чата."""
     update_item(ui.listWidgetMessages, msg)
 
 
 @pyqtSlot(str)
 def update_contact_list(msg):
+    """Обновление списка контактов."""
     update_item(ui.listWidgetContactList, msg)
 
 
-def update_item(item, msg):
+def update_item(listWidget, msg):
+    """Обновление содержимого listWidget"""
     try:
         print(msg)
-        item.addItem(msg)
+        listWidget.addItem(msg)
     except Exception as e:
         print(e)
 
@@ -49,6 +52,7 @@ def update_item(item, msg):
 if __name__ == '__main__':
     client = app_start(MessengerClientGUI)
 
+    # Ждем создания сокета.
     while not client.socket:
         pass
 

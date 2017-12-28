@@ -1,9 +1,10 @@
 class WrongInputError(Exception):
+    """Базовый класс для потомков типа Неверные входные данные."""
     pass
 
 
 class WrongParamsError(WrongInputError):
-    """Неверные параметры для действия"""
+    """Неверные параметры для действия."""
 
     def __init__(self, params):
         self.params = params
@@ -13,7 +14,7 @@ class WrongParamsError(WrongInputError):
 
 
 class WrongActionError(WrongInputError):
-    """Когда передано неверное действие"""
+    """Когда передано неверное действие."""
 
     def __init__(self, action):
         self.action = action
@@ -23,7 +24,7 @@ class WrongActionError(WrongInputError):
 
 
 class WrongDictError(WrongInputError):
-    """Когда пришел неправильный словарь"""
+    """Когда пришел неправильный словарь."""
 
     def __init__(self, input_dict):
         self.input_dict = input_dict
@@ -33,7 +34,7 @@ class WrongDictError(WrongInputError):
 
 
 class ToLongError(Exception):
-    """Ошибка когда наше поле длинее чем надо"""
+    """Ошибка когда наше поле длинее чем надо."""
 
     def __init__(self, name, value, max_length):
         """
@@ -50,6 +51,8 @@ class ToLongError(Exception):
 
 
 class ResponseCodeError(Exception):
+    """Неверный код ответа."""
+
     def __init__(self, code):
         self.code = code
 
@@ -58,6 +61,8 @@ class ResponseCodeError(Exception):
 
 
 class IsNotJimUser(Exception):
+    """Данные о пользователя не в формате JIM."""
+
     def __init__(self, obj):
         self.obj = obj
 

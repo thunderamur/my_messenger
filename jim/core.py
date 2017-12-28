@@ -5,8 +5,7 @@ from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDi
 
 
 class MaxLengthField:
-    """Дескриптор ограничивающий размер поля"""
-
+    """Дескриптор, ограничивающий размер поля."""
     def __init__(self, name, max_length):
         """
         :param name: имя поля
@@ -16,6 +15,7 @@ class MaxLengthField:
         self.name = '_' + name
 
     def __set__(self, instance, value):
+        """Установка значения поля с проверкой его длины."""
         # если длина поля больше максимального значения
         if len(value) > self.max_length:
             # вызываем ошибку
@@ -29,11 +29,15 @@ class MaxLengthField:
 
 
 class Jim:
+    """Реализация JIM-протокола."""
+
     def to_dict(self):
+        """Родителький метод для потомков."""
         return {}
 
     @staticmethod
     def try_create(jim_class, input_dict):
+        """Создание объекта JIM из словаря"""
         try:
             return jim_class(**input_dict)
         except KeyError:
@@ -41,7 +45,8 @@ class Jim:
 
     @staticmethod
     def from_dict(input_dict):
-        """Наиболее важный метод создания объекта из входного словаря
+        """Подготовка входного словаря к использованию при создании объекта JIM методом try_create()."""
+        """
         :input_dict: входной словарь
         :return: объект Jim: Action или Response
         """
@@ -92,7 +97,7 @@ class Jim:
 
 
 class JimAction(Jim):
-    # __slots__ = (ACTION, TIME) - со слотами не работает __dict__ - а он нам нужен для перевода в json
+    """Класс-родитель для классов JIM-сообщений типа action"""
 
     def __init__(self, action, time=None):
         self.action = action
@@ -109,6 +114,7 @@ class JimAction(Jim):
 
 
 class JimAddContact(JimAction):
+    """Добавить контакт."""
     # Имя пользователя ограничено 25 символов - используем дескриптор
     account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
     # Имя пользователя ограничено 25 символов - используем дескриптор
@@ -127,6 +133,7 @@ class JimAddContact(JimAction):
 
 
 class JimDelContact(JimAction):
+    """Удалить контакт."""
     # Имя пользователя ограничено 25 символов - используем дескриптор
     account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
     # Имя пользователя ограничено 25 символов - используем дескриптор
@@ -145,6 +152,7 @@ class JimDelContact(JimAction):
 
 
 class JimContactList(JimAction):
+    """Сообщение типа Контакт при передаче списка контактов."""
     user_id = MaxLengthField('user_id', USERNAME_MAX_LENGTH)
 
     def __init__(self, user_id, quantity=0, time=None):
@@ -160,6 +168,7 @@ class JimContactList(JimAction):
 
 
 class JimGetContacts(JimAction):
+    """Запрос списка контактов"""
     # Имя пользователя ограничено 25 символов - используем дескриптор
     account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
 
@@ -176,6 +185,7 @@ class JimGetContacts(JimAction):
 
 
 class JimPresence(JimAction):
+    """Приветствие JIM"""
     def __init__(self, user, time=None):
         if not isinstance(user, JimUser):
             raise IsNotJimUser
@@ -189,6 +199,7 @@ class JimPresence(JimAction):
 
 
 class JimMessage(JimAction):
+    """Сообщение от пользователя"""
     to = MaxLengthField('to', USERNAME_MAX_LENGTH)
     from_ = MaxLengthField('from_', USERNAME_MAX_LENGTH)
     message = MaxLengthField('message', MESSAGE_MAX_LENGTH)
@@ -208,6 +219,7 @@ class JimMessage(JimAction):
 
 
 class JimJoin(JimAction):
+    """Присоединиться к чату."""
     room = MaxLengthField('room', ROOMNAME_MAX_LENGTH)
 
     def __init__(self, room, time=None):
@@ -221,6 +233,7 @@ class JimJoin(JimAction):
 
 
 class JimLeave(JimAction):
+    """Покинуть чат."""
     room = MaxLengthField('room', ROOMNAME_MAX_LENGTH)
 
     def __init__(self, room, time=None):
@@ -234,6 +247,7 @@ class JimLeave(JimAction):
 
 
 class JimQuit(JimAction):
+    """Выход. Вежливое отключение клиента от сервера."""
     def __init__(self, time=None):
         super().__init__(QUIT, time=time)
 
@@ -243,6 +257,7 @@ class JimQuit(JimAction):
 
 
 class JimAuthenticate(JimAction):
+    """Аутентификация клиента."""
     def __init__(self, user, time=None):
         if not isinstance(user, JimUser):
             raise IsNotJimUser
@@ -256,6 +271,7 @@ class JimAuthenticate(JimAction):
 
 
 class ResponseField:
+    """Класс-дескриптор для JIM-сообщений типа response."""
     def __init__(self, name):
         """
         :param name: имя поля
@@ -263,7 +279,7 @@ class ResponseField:
         self.name = '_' + name
 
     def __set__(self, instance, value):
-        # если значение кода не входит в список доступных котов
+        # если значение кода не входит в список доступных кодов
         if value not in RESPONSE_CODES:
             # вызываем ошибку
             raise ResponseCodeError(value)
@@ -276,7 +292,7 @@ class ResponseField:
 
 
 class JimResponse(Jim):
-    # __slots__ = (RESPONSE, ERROR, ALERT)
+    """Класс-родитель для классов JIM-сообщений типа response"""
     # Используем дескриптор для поля ответ от сервера
     response = ResponseField('response')
 
@@ -296,6 +312,7 @@ class JimResponse(Jim):
 
 
 class JimUser:
+    """Класс, содержащий информацию о клиенте в формате JIM."""
     account_name = MaxLengthField('account_name', USERNAME_MAX_LENGTH)
     password = MaxLengthField('password', PASSWORD_MAX_LENGTH)
 

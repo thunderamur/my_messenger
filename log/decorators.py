@@ -2,6 +2,7 @@ from functools import wraps
 
 
 class Log:
+    """Класс-декоратор для оборачивания функций подлежащих логированию."""
 
     def __init__(self, logger):
         self.logger = logger

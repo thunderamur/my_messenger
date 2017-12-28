@@ -1,9 +1,7 @@
-#import time
 import sys
 import select
 from socket import socket, AF_INET, SOCK_STREAM
 
-# from jim.config import *
 from jim.utils import send_message, get_message
 from jim.core import *
 
@@ -13,7 +11,6 @@ from repo.server_models import session
 from repo.server_repo import Repo
 from repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
 
-# import logging
 from log.server_log_config import server_logger
 from log.decorators import Log
 
@@ -21,6 +18,7 @@ log = Log(server_logger)
 
 
 class MessengerServer(object):
+    """Сервер my_messenger"""
 
     def __init__(self):
         self.clients = []
@@ -30,6 +28,7 @@ class MessengerServer(object):
         self.repo.show_all_clients()
 
     def close(self):
+        """Закрыть соединение."""
         self.socket.close()
 
     def presence_response(self, presence):
@@ -84,6 +83,7 @@ class MessengerServer(object):
 
     @log
     def parse(self, requests):
+        """Парсер сообщений."""
         results = {}
 
         for sock in requests:
@@ -183,6 +183,7 @@ class MessengerServer(object):
         return results
 
     def read_requests(self, r_clients):
+        """Читаем запросы от клиентов."""
         responses = {}  # Словарь ответов сервера вида {сокет: запрос}
         for sock in r_clients:
             try:
@@ -194,6 +195,7 @@ class MessengerServer(object):
         return responses
 
     def write_responses(self, responses, w_clients):
+        """Отправляем сообщения клиентам."""
         for sock in w_clients:
             if sock in responses:
                 try:
@@ -205,6 +207,7 @@ class MessengerServer(object):
                     self.clients.remove(sock)
 
     def run(self, host, port, max_connections=5):
+        """Запуск сервера."""
         with socket(AF_INET, SOCK_STREAM) as sock:
             self.socket = sock
             self.socket.bind((host, port))

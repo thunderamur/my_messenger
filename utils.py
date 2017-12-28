@@ -8,6 +8,7 @@ HASH_SALT = b'MPwWyL4K7Av5q98f'
 
 
 def start_thread(target, name, *args):
+    """Запуск потока."""
     t = Thread(target=target, args=args)
     t.name = name
     t.daemon = True
@@ -16,11 +17,13 @@ def start_thread(target, name, *args):
 
 
 def get_hash(text):
+    """Получить хэш."""
     hashed = hmac.new(HASH_SALT, text.encode(ENCODING))
     return hashed.hexdigest()
 
 
 def app_start(client_class):
+    """Старт приложения."""
     host = None
     port = None
     name = None
