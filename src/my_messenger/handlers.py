@@ -12,11 +12,11 @@ class Receiver:
         self.sock = sock
         self.is_alive = False
 
-    def show_message(self, message):
+    def show_message(self, jm):
         """Показать сообщение."""
         pass
 
-    def show_contact_list(self, message):
+    def show_contact_list(self, jm):
         """Показать список контактов."""
         pass
 
@@ -42,13 +42,14 @@ class Receiver:
 class ConsoleReceiver(Receiver):
     """Консольный получатель сообщений."""
 
-    def show_message(self, message):
+    def show_jm(self, jm):
         """Показать сообщение."""
-        print("{} ({}): {}".format(message.from_, time.strftime('%H:%M:%S'), message.message))
+        print("{} ({}): {}".format(jm.from_, time.strftime('%H:%M:%S'), jm.jm))
 
-    def show_contact_list(self, message):
+    def show_contact_list(self, jm):
         """Показать список контактов."""
-        print(message.user_id)
+        print(jm.user_id)
+        self.request_queue.put(jm)
 
 
 class GuiReceiver(Receiver, QObject):
@@ -65,14 +66,15 @@ class GuiReceiver(Receiver, QObject):
         Receiver.__init__(self, sock, request_queue)
         QObject.__init__(self)
 
-    def show_message(self, message):
+    def show_jm(self, jm):
         """Показать сообщение в GUI."""
-        text = '{} ({}):\n{}'.format(message.from_, time.strftime('%H:%M:%S'), message.message)
-        self.gotMessage.emit(text)
+        text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.jm)
+        self.gotjm.emit(text)
 
-    def show_contact_list(self, message):
+    def show_contact_list(self, jm):
         """Показать контакт в GUI."""
-        self.gotContactList.emit(message.user_id)
+        self.gotContactList.emit(jm.user_id)
+        self.request_queue.put(jm)
 
     def poll(self):
         """Слушать сообщения от сервера. При выходе сообщить GUI."""

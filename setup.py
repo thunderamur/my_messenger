@@ -26,8 +26,8 @@ setup(
                          'ui/img/*.gif']
     },
     install_requires=[
-        "PyQt5==5.9",
-        "SQLAlchemy==1.1.15",
+        "PyQt5>=5.9",
+        "SQLAlchemy>=1.1.15",
     ],
     extras_require={
         'test': ["pytest==3.2.2",
