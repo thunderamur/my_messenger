@@ -49,7 +49,7 @@ def update_item(listWidget, msg):
         print(e)
 
 
-def main():
+if __name__ == '__main__':
     client = app_start(MessengerClientGUI)
 
     # Ждем создания сокета.
@@ -71,7 +71,3 @@ def main():
 
     window.show()
     sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
