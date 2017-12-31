@@ -44,6 +44,9 @@ def app_start(client_class):
     if host and port and name and password:
         client = client_class(name, password)
         client.run(host, port)
+        # Ждем создания сокета.
+        while not client.socket:
+            pass
         return client
     else:
         print('Usage: client.py <addr> [-port=<port>] -user=<user> -pass=<password>')

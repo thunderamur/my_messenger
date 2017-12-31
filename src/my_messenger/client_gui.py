@@ -15,32 +15,37 @@ class MessengerClientGUI(MessengerClient):
     """Графический клиент."""
 
     def start_listener(self):
-        """Перегрузка метода родителя. Получатель сообщений заменен."""
+        """Перегрузка метода родителя. Получатель сообщений."""
         return None
+
+    def sender(self):
+        """Перегрузка метода родителя. Отправитель сообщений."""
+        self.join_room('default_room')
+        time.sleep(1)
+        self.contact_list_request()
 
     def run(self, host, port):
         """Расширение метода родителя. Запуск клиента."""
         start_thread(super().run, 'ClientThread', host, port)
-        # **************
-        # Переделать!!!
-        time.sleep(1)
-        self.contact_list_request()
-        # **************
+
+    def stop(self):
+        """Перегрузка метода родителя. Останов клиента."""
+        self.is_alive = False
 
 
 @pyqtSlot(str)
 def update_chat(msg):
     """Обновление чата."""
-    update_item(ui.listWidgetMessages, msg)
+    update_widget(ui.listWidgetMessages, msg)
 
 
 @pyqtSlot(str)
 def update_contact_list(msg):
     """Обновление списка контактов."""
-    update_item(ui.listWidgetContactList, msg)
+    update_widget(ui.listWidgetContactList, msg)
 
 
-def update_item(listWidget, msg):
+def update_widget(listWidget, msg):
     """Обновление содержимого listWidget"""
     try:
         print(msg)
@@ -51,10 +56,6 @@ def update_item(listWidget, msg):
 
 if __name__ == '__main__':
     client = app_start(MessengerClientGUI)
-
-    # Ждем создания сокета.
-    while not client.socket:
-        pass
 
     listener = GuiReceiver(client.socket, client.request_queue)
     listener.gotMessage.connect(update_chat)

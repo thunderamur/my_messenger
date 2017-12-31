@@ -138,8 +138,8 @@ class MessengerClient:
 
     def stop(self):
         """Останов клиента."""
-        self.is_alive = False
         self.listener.stop()
+        self.is_alive = False
 
     def run(self, host, port):
         """Запуск клиента."""
