@@ -21,7 +21,7 @@ class MessengerClientGUI(MessengerClient):
     def sender(self):
         """Перегрузка метода родителя. Отправитель сообщений."""
         self.join_room('default_room')
-        time.sleep(1)
+        time.sleep(0.2)
         self.contact_list_request()
 
     def run(self, host, port):
