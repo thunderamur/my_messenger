@@ -36,7 +36,7 @@ class Log:
         def decorated(*args, **kwargs):
             result = func(*args, **kwargs)
             message = Log._create_message(result, *args, **kwargs)
-            self.logger.info('{} - {} - {}'.format(message, decorated.__name__, decorated.__module__))
+            self.logger.debug('{} - {} - {}'.format(message, decorated.__name__, decorated.__module__))
             return result
 
         return decorated
