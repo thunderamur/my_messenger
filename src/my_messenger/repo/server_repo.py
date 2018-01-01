@@ -53,6 +53,7 @@ class Repo:
                     ClientContact.ClientId == client.ClientId).filter(
                     ClientContact.ContactId == contact.ClientId).first()
                 self.session.delete(cc)
+                self.session.commit()
             else:
                 # raise NoneClientError(client_username)
                 pass
