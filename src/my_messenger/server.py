@@ -1,5 +1,6 @@
 import sys
 import select
+import logging
 from socket import socket, AF_INET, SOCK_STREAM
 
 from jim.utils import send_message, get_message
@@ -11,26 +12,32 @@ from repo.server_models import session
 from repo.server_repo import Repo
 from repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
 
-from log.server_log_config import server_logger
+from log.logger_config import logger_config
 from log.decorators import Log
 
-log = Log(server_logger)
+
+logger_config('server', logging.DEBUG)
+logger = logging.getLogger('server')
+log = Log(logger)
 
 
-class MessengerServer(object):
+class MyMessengerServer(object):
     """Сервер my_messenger"""
 
     def __init__(self):
+        self.is_alive = False
         self.clients = []
         # {'room_name': Chat()}
         self.rooms = {}
         self.repo = Repo(session)
         self.repo.show_all_clients()
 
+    @log
     def close(self):
         """Закрыть соединение."""
         self.socket.close()
 
+    @log
     def presence_response(self, presence):
         """
         Формирование ответа клиенту
@@ -53,6 +60,7 @@ class MessengerServer(object):
             response = JimResponse(OK)
             return response.to_dict()
 
+    @log
     def authenticate_response(self, authenticate):
         """
         Формирование ответа клиенту
@@ -81,7 +89,6 @@ class MessengerServer(object):
             response = JimResponse(OK)
             return response.to_dict()
 
-    @log
     def parse(self, requests):
         """Парсер сообщений."""
         results = {}
@@ -182,6 +189,12 @@ class MessengerServer(object):
 
         return results
 
+    def client_disconnected(self, sock):
+        """Клиент отключился."""
+        msg = 'Client {} {} disconnected'.format(sock.fileno(), sock.getpeername())
+        logger.info(msg)
+        print(msg)
+
     def read_requests(self, r_clients):
         """Читаем запросы от клиентов."""
         responses = {}  # Словарь ответов сервера вида {сокет: запрос}
@@ -190,7 +203,7 @@ class MessengerServer(object):
                 data = get_message(sock)
                 responses[sock] = data
             except:
-                print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
+                self.client_disconnected(sock)
                 self.clients.remove(sock)
         return responses
 
@@ -202,10 +215,11 @@ class MessengerServer(object):
                     message = responses[sock]
                     send_message(sock, message.to_dict())
                 except:  # Сокет недоступен, клиент отключился
-                    print('Client {} {} disconnected'.format(sock.fileno(), sock.getpeername()))
+                    self.client_disconnected(sock)
                     sock.close()
                     self.clients.remove(sock)
 
+    @log
     def run(self, host, port, max_connections=5):
         """Запуск сервера."""
         with socket(AF_INET, SOCK_STREAM) as sock:
@@ -213,12 +227,16 @@ class MessengerServer(object):
             self.socket.bind((host, port))
             self.socket.listen(max_connections)
             self.socket.settimeout(0.2)
+            self.is_alive = True
 
-            while True:
+            while self.is_alive:
                 try:
                     sock, addr = self.socket.accept()
                 except OSError as e:
                     pass  # timeout вышел
+                except KeyboardInterrupt:
+                    print('\nEXIT')
+                    self.is_alive = False
                 else:
                     print('Connection from: {}'.format(str(addr)))
                     self.clients.append(sock)
@@ -237,6 +255,7 @@ class MessengerServer(object):
                     self.write_responses(responses, w)  # Выполним отправку ответов клиентам
 
 
+@log
 def main():
     if '-a' in sys.argv:
         host = sys.argv[sys.argv.index('-a') + 1]
@@ -247,7 +266,7 @@ def main():
     else:
         port = 7777
 
-    srv = MessengerServer()
+    srv = MyMessengerServer()
     srv.run(host, port)
 
 
