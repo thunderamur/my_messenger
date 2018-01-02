@@ -1,5 +1,6 @@
 import time
 import sys
+import logging
 from socket import socket, AF_INET, SOCK_STREAM
 from queue import Queue
 
@@ -11,6 +12,14 @@ from utils import start_thread, get_hash, app_start
 from client_errors import PresenceFail, AuthenticateFail
 from client_core import MyMessengerClient
 
+from log.logger_config import logger_config
+from log.decorators import Log
+
+
+logger_config('client', logging.DEBUG)
+logger = logging.getLogger('client')
+log = Log(logger)
+
 
 class MyMessengerClientConsole(MyMessengerClient):
     """Клиент my_messenger."""
@@ -19,6 +28,13 @@ class MyMessengerClientConsole(MyMessengerClient):
         self.listener = None
         self.listener_thread = None
         self.sender_thread = None
+
+    def contact_list_result(self, contact_list):
+        """Расширение метода родителя. Вывод контактов в консоль."""
+        super().contact_list_result(contact_list)
+        if contact_list.quantity == 0:
+            for contact in self.contact_list:
+                print(contact)
 
     def stop(self):
         """Расширение метода родителя. Останов клиента."""

@@ -4,14 +4,14 @@ from PyQt5.QtCore import Qt, QThread, pyqtSlot
 from queue import Queue
 import time
 
-from client import MessengerClient
+from client_core import MyMessengerClient
 import gui.MyMessengerUI
 from jim.core import *
 from handlers import GuiReceiver
 from utils import start_thread, app_start
 
 
-class MessengerClientGUI(MessengerClient):
+class MessengerClientGUI(MyMessengerClient):
     """Графический клиент."""
 
     def start_listener(self):

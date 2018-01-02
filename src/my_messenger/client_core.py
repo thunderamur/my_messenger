@@ -30,6 +30,7 @@ class MyMessengerClient:
         self.is_alive = False
         self.request_queue = Queue()
         self.listener_parser_thread = None
+        self.contact_list = []
 
     @log
     def presence(self):
@@ -102,12 +103,15 @@ class MyMessengerClient:
     @log
     def contact_list_request(self, quantity=0):
         """Запросить список контактов."""
+        if quantity == 0:
+            self.contact_list = []
         message = JimGetContacts(self.user.account_name, quantity)
         self.request(message)
 
     @log
     def contact_list_result(self, contact_list):
         """Обработка сообщения о контакте от сервера."""
+        self.contact_list.append(contact_list.user_id)
         if contact_list.quantity > 0:
             self.contact_list_request(contact_list.quantity)
 

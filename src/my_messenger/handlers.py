@@ -16,10 +16,6 @@ class Receiver:
         """Показать сообщение."""
         pass
 
-    def show_contact_list(self, jm):
-        """Показать список контактов."""
-        pass
-
     def poll(self):
         """Слушать сообщения от сервера."""
         self.is_alive = True
@@ -29,8 +25,6 @@ class Receiver:
             print(jm.__dict__)
             if isinstance(jm, JimMessage):
                 self.show_message(jm)
-            elif isinstance(jm, JimContactList):
-                self.show_contact_list(jm)
             else:
                 self.request_queue.put(jm)
 
@@ -42,39 +36,26 @@ class Receiver:
 class ConsoleReceiver(Receiver):
     """Консольный получатель сообщений."""
 
-    def show_jm(self, jm):
+    def show_message(self, jm):
         """Показать сообщение."""
         print("{} ({}): {}".format(jm.from_, time.strftime('%H:%M:%S'), jm.jm))
-
-    def show_contact_list(self, jm):
-        """Показать список контактов."""
-        print(jm.user_id)
-        self.request_queue.put(jm)
 
 
 class GuiReceiver(Receiver, QObject):
     """Графический получатель сообщений."""
-
     # Получено сообщение.
     gotMessage = pyqtSignal(str)
     # Останов получателя.
     finished = pyqtSignal(int)
-    # Получен контакт.
-    gotContactList = pyqtSignal(str)
 
     def __init__(self, sock, request_queue):
         Receiver.__init__(self, sock, request_queue)
         QObject.__init__(self)
 
-    def show_jm(self, jm):
+    def show_message(self, jm):
         """Показать сообщение в GUI."""
         text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.jm)
         self.gotjm.emit(text)
-
-    def show_contact_list(self, jm):
-        """Показать контакт в GUI."""
-        self.gotContactList.emit(jm.user_id)
-        self.request_queue.put(jm)
 
     def poll(self):
         """Слушать сообщения от сервера. При выходе сообщить GUI."""
