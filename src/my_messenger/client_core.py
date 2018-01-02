@@ -29,7 +29,6 @@ class MyMessengerClient:
         self.room = None
         self.is_alive = False
         self.request_queue = Queue()
-        self.listener_parser_thread = None
         self.contact_list = []
 
     @log
@@ -171,4 +170,4 @@ class MyMessengerClient:
 
         self.is_alive = True
 
-        self.listener_parser_thread = start_thread(self.listener_parser, 'listener_parser')
+        self.listener_parser()

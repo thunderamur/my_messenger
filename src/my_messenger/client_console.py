@@ -21,46 +21,33 @@ logger = logging.getLogger('client')
 log = Log(logger)
 
 
-class MyMessengerClientConsole(MyMessengerClient):
+class MyMessengerClientConsole:
     """Клиент my_messenger."""
     def __init__(self, account_name, password):
-        super().__init__(account_name, password)
+        self.client = MyMessengerClient(account_name, password)
+        self.client_thread = None
         self.listener = None
         self.listener_thread = None
-        self.sender_thread = None
-
-    def contact_list_result(self, contact_list):
-        """Расширение метода родителя. Вывод контактов в консоль."""
-        super().contact_list_result(contact_list)
-        if contact_list.quantity == 0:
-            for contact in self.contact_list:
-                print(contact)
 
     def stop(self):
-        """Расширение метода родителя. Останов клиента."""
-        super().stop()
         self.listener.stop()
 
     def run(self, host, port):
-        """Расширение метода родителя. Запуск клиента."""
-        # Запускается поток listener_parser
-        super().run(host, port)
-        # Запускаем прием сообщений
-        self.listener = ConsoleReceiver(self.socket, self.request_queue)
+        self.client_thread = start_thread(self.client.run, 'Client', host, port)
+        while not self.client.is_alive:
+            pass
+        self.listener = ConsoleReceiver(self.client.socket, self.client.request_queue)
         self.listener_thread = start_thread(self.listener.poll, 'Listener')
-        # Запускаем отправку сообщений
-        self.sender_thread = start_thread(self.sender, 'Sender')
-
-        self.listener_parser_thread.join()
+        self.sender()
+        self.client_thread.join()
         self.listener_thread.join()
-        self.sender_thread.join()
 
     def sender(self):
-        """Метод, запускаемый в отдельном потоке для отправки сообщений серверу."""
-        self.join_room('default_room')
-        while self.is_alive:
+        self.client.join_room('default_room')
+        while self.client.is_alive:
             command = input()
-            self.sender_parser(command)
+            self.client.sender_parser(command)
+        self.stop()
 
 
 if __name__ == '__main__':
