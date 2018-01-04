@@ -5,70 +5,93 @@ from queue import Queue
 import time
 
 from client_core import MyMessengerClient
-import gui.MyMessengerUI
+from gui.MyMessengerUI import Ui_MainWindow
 from jim.core import *
 from handlers import GuiReceiver
 from utils import start_thread, app_start
 
 
-class MessengerClientGUI(MyMessengerClient):
-    """Графический клиент."""
+class ClientGUI(QtWidgets.QMainWindow):
+    def __init__(self, client, parent=None):
+        super().__init__()
+        self.client = client
+        self.client.client_core.contact_list_request()
+        time.sleep(0.5)
+        self.client.client_core.join_room('default_room')
+        # UI
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
-    def start_listener(self):
-        """Перегрузка метода родителя. Получатель сообщений."""
-        return None
 
-    def sender(self):
-        """Перегрузка метода родителя. Отправитель сообщений."""
-        self.join_room('default_room')
-        time.sleep(0.2)
-        self.contact_list_request()
-
-    def run(self, host, port):
-        """Расширение метода родителя. Запуск клиента."""
-        start_thread(super().run, 'ClientThread', host, port)
+class MyMessengerClientGUI:
+    """Клиент my_messenger."""
+    def __init__(self, account_name, password):
+        self.client_core = MyMessengerClient(account_name, password)
+        self.client_thread = None
+        self.listener = None
+        self.listener_thread = None
 
     def stop(self):
-        """Перегрузка метода родителя. Останов клиента."""
-        self.is_alive = False
+        self.listener.stop()
+
+    def run(self, host, port):
+        self.client_thread = start_thread(self.client_core.run, 'Client', host, port)
+        while not self.client_core.is_alive:
+            pass
+        self.listener = GuiReceiver(self.client_core.socket, self.client_core.request_queue)
+        self.listener_thread = start_thread(self.listener.poll, 'Listener')
+        self.client_thread.join()
+        self.listener_thread.join()
 
 
 @pyqtSlot(str)
 def update_chat(msg):
     """Обновление чата."""
-    update_widget(ui.listWidgetMessages, msg)
-
-
-@pyqtSlot(str)
-def update_contact_list(msg):
-    """Обновление списка контактов."""
-    update_widget(ui.listWidgetContactList, msg)
-
-
-def update_widget(listWidget, msg):
-    """Обновление содержимого listWidget"""
     try:
         print(msg)
-        listWidget.addItem(msg)
+        client_gui.ui.listWidgetMessages.addItem(msg)
     except Exception as e:
         print(e)
 
 
 if __name__ == '__main__':
-    client = app_start(MessengerClientGUI)
+    # ======================
+    host = None
+    port = None
+    name = None
+    password = None
+    if len(sys.argv) >= 4:
+        host = sys.argv[1]
+        port = 7777
 
-    listener = GuiReceiver(client.socket, client.request_queue)
+        for option in sys.argv[2:]:
+            key, val = option.split('=')
+            if key == '-port':
+                port = val
+            elif key == '-user':
+                name = val
+            elif key == '-pass':
+                password = val
+
+    if host and port and name and password:
+        mmc = MyMessengerClientGUI(name, password)
+        start_thread(mmc.run, 'Client', host, port)
+    else:
+        print('Usage: client.py <addr> [-port=<port>] -user=<user> -pass=<password>')
+        sys.exit()
+    # =============================
+
+    app = QtWidgets.QApplication(sys.argv)
+    while not mmc.client_core.is_alive:
+        pass
+    client_gui = ClientGUI(mmc)
+    client_gui.show()
+
+    listener = GuiReceiver(mmc.client_core.socket, mmc.client_core.request_queue)
     listener.gotMessage.connect(update_chat)
-    listener.gotContactList.connect(update_contact_list)
     thread = QThread()
     listener.moveToThread(thread)
     thread.started.connect(listener.poll)
     thread.start()
 
-    app = QtWidgets.QApplication(sys.argv)
-    window = QtWidgets.QMainWindow()
-    ui = gui.MyMessengerUI.Ui_MainWindow()
-    ui.setupUi(window)
-
-    window.show()
     sys.exit(app.exec_())
