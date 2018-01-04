@@ -45,7 +45,7 @@ class MyMessengerClientConsole:
     def sender_parser(self, command):
         """Обработка команд пользователя."""
         if command == '<quit>':
-            send_message(self.client_core.socket, JimQuit().to_dict())
+            self.client_core.request(JimQuit())
             self.client_core.stop()
         elif command == '<leave>':
             self.client_core.leave_room()
@@ -60,7 +60,8 @@ class MyMessengerClientConsole:
             elif action == '<join>':
                 self.client_core.join_room(param)
         else:
-            send_message(self.client_core.socket, JimMessage(self.client_core.room, self.client_core.user.account_name, command).to_dict())
+            jm = JimMessage(self.client_core.room, self.client_core.user.account_name, command)
+            self.client_core.request(jm)
 
     def sender(self):
         self.client_core.join_room('default_room')
