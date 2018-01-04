@@ -38,7 +38,7 @@ class ConsoleReceiver(Receiver):
 
     def show_message(self, jm):
         """Показать сообщение."""
-        print("{} ({}): {}".format(jm.from_, time.strftime('%H:%M:%S'), jm.jm))
+        print("{} ({}): {}".format(jm.from_, time.strftime('%H:%M:%S'), jm.message))
 
 
 class GuiReceiver(Receiver, QObject):
@@ -54,8 +54,8 @@ class GuiReceiver(Receiver, QObject):
 
     def show_message(self, jm):
         """Показать сообщение в GUI."""
-        text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.jm)
-        self.gotjm.emit(text)
+        text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.message)
+        self.gotMessage.emit(text)
 
     def poll(self):
         """Слушать сообщения от сервера. При выходе сообщить GUI."""
