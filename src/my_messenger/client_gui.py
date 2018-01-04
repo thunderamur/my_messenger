@@ -21,6 +21,15 @@ class ClientGUI(QtWidgets.QMainWindow):
         # UI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
+
+    def chat_send(self):
+        msg_txt = self.ui.textEditChatInput.toPlainText()
+        jm = JimMessage(self.client.client_core.room, self.client.client_core.user.account_name, msg_txt)
+        self.client.client_core.request(jm)
+        self.ui.textEditChatInput.clear()
+        text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.message)
+        self.ui.listWidgetMessages.addItem(text)
 
 
 class MyMessengerClientGUI:
