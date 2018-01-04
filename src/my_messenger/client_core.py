@@ -125,27 +125,6 @@ class MyMessengerClient:
                 self.contact_list_result(jm)
 
     @log
-    def sender_parser(self, command):
-        """Обработка команд пользователя."""
-        if command == '<quit>':
-            send_message(self.socket, JimQuit().to_dict())
-            self.stop()
-        elif command == '<leave>':
-            self.leave_room()
-        elif command.startswith('<list>'):
-            self.contact_list_request()
-        elif command.startswith('<'):
-            action, param = command.split()
-            if action == '<add>':
-                self.add_contact(param)
-            elif action == '<del>':
-                self.del_contact(param)
-            elif action == '<join>':
-                self.join_room(param)
-        else:
-            send_message(self.socket, JimMessage(self.room, self.user.account_name, command).to_dict())
-
-    @log
     def stop(self):
         """Останов клиента."""
         self.is_alive = False
