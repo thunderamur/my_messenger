@@ -36,7 +36,7 @@ class MyMessengerClient:
         """Отправить приветствие серверу и обработать ответ."""
         print('Presence... ', end='')
         presence = JimPresence(self.user)
-        send_message(self.socket, presence.to_dict())
+        self.request(presence)
         response = get_message(self.socket)
         response = Jim.from_dict(response).to_dict()
         if response['response'] == OK:
@@ -48,7 +48,7 @@ class MyMessengerClient:
         """Отправить запрос аутентификации и обработать ответ."""
         print('Authenticate... ', end='')
         authenticate = JimAuthenticate(self.user)
-        send_message(self.socket, authenticate.to_dict())
+        self.request(authenticate)
         response = get_message(self.socket)
         response = Jim.from_dict(response).to_dict()
         if response['response'] == OK:
@@ -84,12 +84,12 @@ class MyMessengerClient:
         self.request(message)
 
     @log
-    def request(self, message):
+    def request(self, jm):
         """Отправить сообщение."""
         try:
-            send_message(self.socket, message.to_dict())
+            send_message(self.socket, jm.to_dict())
         except:
-            logger.exception('Request to server ERROR. {}'.format(message.to_dict()))
+            logger.exception('Request to server ERROR. {}'.format(jm.to_dict()))
 
     @staticmethod
     def response(response):
