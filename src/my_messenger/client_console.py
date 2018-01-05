@@ -1,15 +1,9 @@
-import time
 import sys
 import logging
-from socket import socket, AF_INET, SOCK_STREAM
-from queue import Queue
-
-from jim.utils import send_message, get_message
 from jim.core import *
 
 from handlers import ConsoleReceiver
-from utils import start_thread, get_hash, app_start
-from client_errors import PresenceFail, AuthenticateFail
+from utils import start_thread
 from client_core import MyMessengerClient
 
 from log.logger_config import logger_config
@@ -72,4 +66,25 @@ class MyMessengerClientConsole:
 
 
 if __name__ == '__main__':
-    app_start(MyMessengerClientConsole)
+    host = None
+    port = None
+    name = None
+    password = None
+    if len(sys.argv) >= 4:
+        host = sys.argv[1]
+        port = 7777
+
+        for option in sys.argv[2:]:
+            key, val = option.split('=')
+            if key == '-port':
+                port = val
+            elif key == '-user':
+                name = val
+            elif key == '-pass':
+                password = val
+
+    if host and port and name and password:
+        client = MyMessengerClientConsole(name, password)
+        client.run(host, port)
+    else:
+        print('Usage: client.py <addr> [-port=<port>] -user=<user> -pass=<password>')

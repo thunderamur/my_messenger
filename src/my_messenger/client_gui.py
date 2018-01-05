@@ -9,7 +9,7 @@ from gui.MyMessengerUI import Ui_MainWindow
 from gui.ConnectDialogUI import Ui_ConnectDialog
 from jim.core import *
 from handlers import GuiReceiver
-from utils import start_thread, app_start
+from utils import start_thread
 
 
 class ConnectUI(QtWidgets.QDialog):
@@ -65,10 +65,12 @@ class ClientGUI(QtWidgets.QMainWindow):
         return True
 
     def connect(self):
+        """Open connect dialog modal window"""
         cui = ConnectUI(parent=self)
         cui.exec()
 
     def start_listener(self):
+        """Start GuiReceiver"""
         listener = GuiReceiver(self.client.socket, self.client.request_queue)
         listener.gotMessage.connect(self.update_chat)
         thread = QThread()
@@ -78,7 +80,7 @@ class ClientGUI(QtWidgets.QMainWindow):
         return listener, thread
 
     def update_chat(self, msg):
-        """Обновление чата."""
+        """Chat update."""
         try:
             print(msg)
             self.ui.listWidgetMessages.addItem(msg)
@@ -86,6 +88,7 @@ class ClientGUI(QtWidgets.QMainWindow):
             print(e)
 
     def chat_send(self):
+        """Send message."""
         msg_txt = self.ui.textEditChatInput.toPlainText()
         jm = JimMessage(self.client.room, self.client.user.account_name, msg_txt)
         self.client.request(jm)

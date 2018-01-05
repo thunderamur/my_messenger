@@ -1,7 +1,7 @@
 import time
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from jim.utils import send_message, get_message
+from jim.utils import get_message
 from jim.core import *
 
 
