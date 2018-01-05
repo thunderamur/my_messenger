@@ -36,7 +36,7 @@ class Ui_MainWindow(object):
         self.groupBoxChatName.setGeometry(QtCore.QRect(210, 10, 381, 341))
         self.groupBoxChatName.setObjectName("groupBoxChatName")
         self.listWidgetContactList = QtWidgets.QListWidget(self.centralwidget)
-        self.listWidgetContactList.setGeometry(QtCore.QRect(10, 80, 201, 261))
+        self.listWidgetContactList.setGeometry(QtCore.QRect(10, 80, 191, 261))
         self.listWidgetContactList.setObjectName("listWidgetContactList")
         self.pushButtonAddContact.raise_()
         self.pushButtonContactList.raise_()
