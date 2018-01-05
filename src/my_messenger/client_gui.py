@@ -1,33 +1,72 @@
 import sys
+import time
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt, QThread, pyqtSlot
 from queue import Queue
-import time
 
 from client_core import MyMessengerClient
 from gui.MyMessengerUI import Ui_MainWindow
+from gui.ConnectDialogUI import Ui_ConnectDialog
 from jim.core import *
 from handlers import GuiReceiver
 from utils import start_thread, app_start
 
 
+class ConnectUI(QtWidgets.QDialog):
+    """Modal window to set connection params."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.ui = Ui_ConnectDialog()
+        self.ui.setupUi(self)
+        self.ui.pushButtonConnect.clicked.connect(self.connect)
+
+    def connect(self):
+        """Get params and transfer to parent"""
+        ip, port = self.ui.lineEditIP.text().split(':')
+        self.parent().ip = ip
+        self.parent().port = int(port)
+        self.parent().login = self.ui.lineEditLogin.text()
+        self.parent().password = self.ui.lineEditPassword.text()
+        self.close()
+
+
 class ClientGUI(QtWidgets.QMainWindow):
+    """GUI for MyMessenger"""
     def __init__(self, parent=None):
         super().__init__()
 
-        self.client = MyMessengerClient('user1', '123')
-        start_thread(self.client.run, 'Client', '127.0.0.1', 7777)
-        while not self.client.is_alive:
-            pass
-        self.listener, self.listener_thread = self.start_listener()
-        self.client.contact_list_request()
-        time.sleep(0.5)
-        self.client.join_room('default_room')
+        # Client
+        self.ip = None
+        self.port = None
+        self.login = None
+        self.password = None
+        self.client = None
+        self.listener = None
+        self.listener_thread = None
 
         # UI
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
+
+    def run(self):
+        """Start client."""
+        self.connect()
+        self.client = MyMessengerClient(self.login, self.password)
+        client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
+        while not self.client.is_alive:
+            if not client_thread.is_alive():
+                return False
+        self.listener, self.listener_thread = self.start_listener()
+        self.client.contact_list_request()
+        # TODO: FIX this stupid hack!
+        time.sleep(0.5)
+        self.client.join_room('default_room')
+        return True
+
+    def connect(self):
+        cui = ConnectUI(parent=self)
+        cui.exec()
 
     def start_listener(self):
         listener = GuiReceiver(self.client.socket, self.client.request_queue)
@@ -56,34 +95,11 @@ class ClientGUI(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
-    # ======================
-    # host = None
-    # port = None
-    # name = None
-    # password = None
-    # if len(sys.argv) >= 4:
-    #     host = sys.argv[1]
-    #     port = 7777
-    #
-    #     for option in sys.argv[2:]:
-    #         key, val = option.split('=')
-    #         if key == '-port':
-    #             port = val
-    #         elif key == '-user':
-    #             name = val
-    #         elif key == '-pass':
-    #             password = val
-    #
-    # if host and port and name and password:
-    #     mmc = MyMessengerClientGUI(name, password)
-    #     start_thread(mmc.run, 'Client', host, port)
-    # else:
-    #     print('Usage: client.py <addr> [-port=<port>] -user=<user> -pass=<password>')
-    #     sys.exit()
-    # =============================
-
     app = QtWidgets.QApplication(sys.argv)
+
     client_gui = ClientGUI()
     client_gui.show()
+    while not client_gui.run():
+        print('Run FAILED. Trying again...')
 
     sys.exit(app.exec_())
