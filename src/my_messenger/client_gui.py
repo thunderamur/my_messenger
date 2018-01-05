@@ -1,8 +1,7 @@
 import sys
 import time
-from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import Qt, QThread, pyqtSlot
-from queue import Queue
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QThread
 
 from client_core import MyMessengerClient
 from gui.MyMessengerUI import Ui_MainWindow
@@ -48,6 +47,8 @@ class ClientGUI(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
+        self.ui.pushButtonAddContact.clicked.connect(self.add_contact)
+        self.ui.pushButtonDelContact.clicked.connect(self.del_contact)
 
     def run(self):
         """Start client."""
@@ -60,7 +61,8 @@ class ClientGUI(QtWidgets.QMainWindow):
         self.listener, self.listener_thread = self.start_listener()
         self.client.contact_list_request()
         # TODO: FIX this stupid hack!
-        time.sleep(0.5)
+        time.sleep(1)
+        self.update_contact_list()
         self.client.join_room('default_room')
         return True
 
@@ -87,6 +89,15 @@ class ClientGUI(QtWidgets.QMainWindow):
         except Exception as e:
             print(e)
 
+    def update_contact_list(self):
+        """ContactWidget update."""
+        try:
+            self.ui.listWidgetContactList.clear()
+            for contact in self.client.contact_list:
+                self.ui.listWidgetContactList.addItem(contact)
+        except Exception as e:
+            print(e)
+
     def chat_send(self):
         """Send message."""
         msg_txt = self.ui.textEditChatInput.toPlainText()
@@ -95,6 +106,22 @@ class ClientGUI(QtWidgets.QMainWindow):
         self.ui.textEditChatInput.clear()
         text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.message)
         self.ui.listWidgetMessages.addItem(text)
+
+    def add_contact(self):
+        contact = self.ui.lineEditAddContact.text()
+        self.ui.lineEditAddContact.clear()
+        self.client.add_contact(contact)
+        self.client.contact_list.append(contact)
+        self.ui.listWidgetContactList.addItem(contact)
+
+    def del_contact(self):
+        item = self.ui.listWidgetContactList.currentItem()
+        contact = item.text()
+        self.client.del_contact(contact)
+        self.client.contact_list.remove(contact)
+        # TODO: Replace on remove item from widget
+        self.update_contact_list()
+
 
 
 if __name__ == '__main__':
