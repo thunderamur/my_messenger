@@ -27,7 +27,7 @@
      <string>Добавить</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButtonContactList">
+   <widget class="QPushButton" name="pushButtonDelContact">
     <property name="geometry">
      <rect>
       <x>110</x>
@@ -107,7 +107,7 @@
     </property>
    </widget>
    <zorder>pushButtonAddContact</zorder>
-   <zorder>pushButtonContactList</zorder>
+   <zorder>pushButtonDelContact</zorder>
    <zorder>lineEditAddContact</zorder>
    <zorder>groupBoxChatName</zorder>
    <zorder>listWidgetMessages</zorder>
