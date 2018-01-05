@@ -18,7 +18,7 @@ log = Log(logger)
 class MyMessengerClientConsole:
     """Клиент my_messenger."""
     def __init__(self, account_name, password):
-        self.client_core = MyMessengerClient(account_name, password)
+        self.client = MyMessengerClient(account_name, password)
         self.client_thread = None
         self.listener = None
         self.listener_thread = None
@@ -27,10 +27,10 @@ class MyMessengerClientConsole:
         self.listener.stop()
 
     def run(self, host, port):
-        self.client_thread = start_thread(self.client_core.run, 'Client', host, port)
-        while not self.client_core.is_alive:
+        self.client_thread = start_thread(self.client.run, 'Client', host, port)
+        while not self.client.is_alive:
             pass
-        self.listener = ConsoleReceiver(self.client_core.socket, self.client_core.request_queue)
+        self.listener = ConsoleReceiver(self.client.socket, self.client.request_queue)
         self.listener_thread = start_thread(self.listener.poll, 'Listener')
         self.sender()
         self.client_thread.join()
@@ -39,27 +39,27 @@ class MyMessengerClientConsole:
     def sender_parser(self, command):
         """Обработка команд пользователя."""
         if command == '<quit>':
-            self.client_core.request(JimQuit())
-            self.client_core.stop()
+            self.client.request(JimQuit())
+            self.client.stop()
         elif command == '<leave>':
-            self.client_core.leave_room()
+            self.client.leave_room()
         elif command.startswith('<list>'):
-            self.client_core.contact_list_request()
+            self.client.contact_list_request()
         elif command.startswith('<'):
             action, param = command.split()
             if action == '<add>':
-                self.client_core.add_contact(param)
+                self.client.add_contact(param)
             elif action == '<del>':
-                self.client_core.del_contact(param)
+                self.client.del_contact(param)
             elif action == '<join>':
-                self.client_core.join_room(param)
+                self.client.join_room(param)
         else:
-            jm = JimMessage(self.client_core.room, self.client_core.user.account_name, command)
-            self.client_core.request(jm)
+            jm = JimMessage(self.client.room, self.client.user.account_name, command)
+            self.client.request(jm)
 
     def sender(self):
-        self.client_core.join_room('default_room')
-        while self.client_core.is_alive:
+        self.client.join_room('default_room')
+        while self.client.is_alive:
             command = input()
             self.sender_parser(command)
         self.stop()
