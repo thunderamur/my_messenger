@@ -88,15 +88,16 @@ class MyMessengerClient:
     def request(self, jm):
         """Отправить сообщение."""
         try:
+            self.is_ready = False
             send_message(self.socket, jm.to_dict())
         except:
             logger.exception('Request to server ERROR. {}'.format(jm.to_dict()))
 
-    @staticmethod
-    def response(response):
+    @log
+    def response(self, response):
         """Обработка ответа от сервера."""
-        if response.response == ACCEPTED:
-            pass
+        if response.response in [OK, ACCEPTED]:
+            self.is_ready = True
         elif response.error is not None:
             print(response.error)
 
@@ -106,7 +107,6 @@ class MyMessengerClient:
         if quantity == 0:
             self.contact_list = []
         message = JimGetContacts(self.user.account_name, quantity)
-        self.is_ready = False
         self.request(message)
 
     @log
