@@ -29,7 +29,7 @@ class ConnectUI(QtWidgets.QDialog):
         self.close()
 
 
-class ClientGUI(QtWidgets.QMainWindow):
+class MyMessengerClientGUI(QtWidgets.QMainWindow):
     """GUI for MyMessenger"""
     def __init__(self, parent=None):
         super().__init__()
@@ -41,6 +41,7 @@ class ClientGUI(QtWidgets.QMainWindow):
         self.password = None
         self.client = None
         self.listener = None
+        self.client_thread = None
         self.listener_thread = None
 
         # UI
@@ -50,20 +51,29 @@ class ClientGUI(QtWidgets.QMainWindow):
         self.ui.pushButtonAddContact.clicked.connect(self.add_contact)
         self.ui.pushButtonDelContact.clicked.connect(self.del_contact)
 
+    def closeEvent(self, QCloseEvent):
+        """Extend of method. Activate stop methods of client and listener before close GUI."""
+        self.client.stop()
+        self.listener.stop()
+        self.client_thread.join()
+        self.listener_thread.join()
+        super().closeEvent(QCloseEvent)
+
     def run(self):
         """Start client."""
         self.connect()
         self.client = MyMessengerClient(self.login, self.password)
-        client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
+        self.client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
         while not self.client.is_alive:
-            if not client_thread.is_alive():
+            if not self.client_thread.is_alive():
                 return False
         self.listener, self.listener_thread = self.start_listener()
+
         self.client.contact_list_request()
-        # TODO: FIX this stupid hack!
-        time.sleep(1)
+        while not self.client.is_ready:
+            pass
         self.update_contact_list()
-        self.client.join_room('default_room')
+
         return True
 
     def connect(self):
@@ -93,6 +103,7 @@ class ClientGUI(QtWidgets.QMainWindow):
         """ContactWidget update."""
         try:
             self.ui.listWidgetContactList.clear()
+            self.ui.listWidgetContactList.addItem('@all')
             for contact in self.client.contact_list:
                 self.ui.listWidgetContactList.addItem(contact)
         except Exception as e:
@@ -123,11 +134,10 @@ class ClientGUI(QtWidgets.QMainWindow):
         self.update_contact_list()
 
 
-
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
-    client_gui = ClientGUI()
+    client_gui = MyMessengerClientGUI()
     client_gui.show()
     while not client_gui.run():
         print('Run FAILED. Trying again...')
