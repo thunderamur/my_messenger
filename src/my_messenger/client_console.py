@@ -39,7 +39,6 @@ class MyMessengerClientConsole:
     def sender_parser(self, command):
         """Обработка команд пользователя."""
         if command == '<quit>':
-            self.client.request(JimQuit())
             self.client.stop()
         elif command == '<leave>':
             self.client.leave_room()
@@ -58,7 +57,7 @@ class MyMessengerClientConsole:
             self.client.request(jm)
 
     def sender(self):
-        self.client.join_room('default_room')
+        self.client.join_room('@all')
         while self.client.is_alive:
             command = input()
             self.sender_parser(command)

@@ -30,6 +30,7 @@ class MyMessengerClient:
         self.is_alive = False
         self.request_queue = Queue()
         self.contact_list = []
+        self.is_ready = True
 
     @log
     def presence(self):
@@ -105,6 +106,7 @@ class MyMessengerClient:
         if quantity == 0:
             self.contact_list = []
         message = JimGetContacts(self.user.account_name, quantity)
+        self.is_ready = False
         self.request(message)
 
     @log
@@ -113,6 +115,8 @@ class MyMessengerClient:
         self.contact_list.append(contact_list.user_id)
         if contact_list.quantity > 0:
             self.contact_list_request(contact_list.quantity)
+        else:
+            self.is_ready = True
 
     @log
     def listener_parser(self):
@@ -127,6 +131,7 @@ class MyMessengerClient:
     @log
     def stop(self):
         """Останов клиента."""
+        self.request(JimQuit())
         self.is_alive = False
 
     @log
