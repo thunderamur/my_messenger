@@ -1,5 +1,6 @@
 import sys
 import logging
+import time
 from socket import socket, AF_INET, SOCK_STREAM
 from queue import Queue
 
@@ -12,6 +13,8 @@ from client_errors import PresenceFail, AuthenticateFail
 
 from log.logger_config import logger_config
 from log.decorators import Log
+
+from client_config import DEBUG
 
 
 logger_config('client', logging.DEBUG)
@@ -30,7 +33,9 @@ class MyMessengerClient:
         self.is_alive = False
         self.request_queue = Queue()
         self.contact_list = []
-        self.is_ready = True
+        self.is_contact_list_ready = False
+        self.listener_parser_thread = None
+        self.is_ready = False
 
     @log
     def presence(self):
@@ -49,8 +54,10 @@ class MyMessengerClient:
         """Отправить запрос аутентификации и обработать ответ."""
         print('Authenticate... ', end='')
         authenticate = JimAuthenticate(self.user)
+        self.is_ready = True
         self.request(authenticate)
         response = get_message(self.socket)
+        self.is_ready = True
         response = Jim.from_dict(response).to_dict()
         if response['response'] == OK:
             print('OK')
@@ -88,6 +95,10 @@ class MyMessengerClient:
     def request(self, jm):
         """Отправить сообщение."""
         try:
+            if DEBUG:
+                print('REQUEST: ', jm.to_dict())
+            while not self.is_ready:
+                time.sleep(0.1)
             self.is_ready = False
             send_message(self.socket, jm.to_dict())
         except:
@@ -96,8 +107,9 @@ class MyMessengerClient:
     @log
     def response(self, response):
         """Обработка ответа от сервера."""
+        self.is_ready = True
         if response.response in [OK, ACCEPTED]:
-            self.is_ready = True
+            pass
         elif response.error is not None:
             print(response.error)
 
@@ -106,17 +118,25 @@ class MyMessengerClient:
         """Запросить список контактов."""
         if quantity == 0:
             self.contact_list = []
+            self.is_contact_list_ready = False
         message = JimGetContacts(self.user.account_name, quantity)
         self.request(message)
 
     @log
     def contact_list_result(self, contact_list):
         """Обработка сообщения о контакте от сервера."""
+        self.is_ready = True
         self.contact_list.append(contact_list.user_id)
         if contact_list.quantity > 0:
             self.contact_list_request(contact_list.quantity)
         else:
-            self.is_ready = True
+            self.is_contact_list_ready = True
+
+    @log
+    def get_contact_list(self):
+        while not self.is_contact_list_ready:
+            time.sleep(0.1)
+        return self.contact_list
 
     @log
     def listener_parser(self):
@@ -131,8 +151,8 @@ class MyMessengerClient:
     @log
     def stop(self):
         """Останов клиента."""
-        self.request(JimQuit())
         self.is_alive = False
+        self.request(JimQuit())
 
     @log
     def run(self, host, port):
@@ -154,4 +174,8 @@ class MyMessengerClient:
 
         self.is_alive = True
 
-        self.listener_parser()
+        self.listener_parser_thread = start_thread(self.listener_parser, 'listener_parser')
+        self.join_room(self.user.account_name)
+        self.join_room('@all')
+
+        self.listener_parser_thread.join()

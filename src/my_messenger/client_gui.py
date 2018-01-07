@@ -50,6 +50,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
         self.ui.pushButtonAddContact.clicked.connect(self.add_contact)
         self.ui.pushButtonDelContact.clicked.connect(self.del_contact)
+        self.ui.listWidgetContactList.itemDoubleClicked.connect(self.join_room)
 
     def closeEvent(self, QCloseEvent):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
@@ -105,7 +106,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         try:
             self.ui.listWidgetContactList.clear()
             self.ui.listWidgetContactList.addItem('@all')
-            for contact in self.client.contact_list:
+            for contact in self.client.get_contact_list():
                 self.ui.listWidgetContactList.addItem(contact)
         except Exception as e:
             print(e)
@@ -120,6 +121,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.listWidgetMessages.addItem(text)
 
     def add_contact(self):
+        """Add contact to contact list."""
         contact = self.ui.lineEditAddContact.text()
         self.ui.lineEditAddContact.clear()
         self.client.add_contact(contact)
@@ -127,12 +129,17 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.listWidgetContactList.addItem(contact)
 
     def del_contact(self):
+        """Remove contact from contact list."""
         item = self.ui.listWidgetContactList.currentItem()
         contact = item.text()
         self.client.del_contact(contact)
         self.client.contact_list.remove(contact)
         # TODO: Replace on remove item from widget
         self.update_contact_list()
+
+    def join_room(self):
+        item = self.ui.listWidgetContactList.currentItem()
+        self.client.room = item.text()
 
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
 import sys
 import logging
+import time
+
 from jim.core import *
 
 from handlers import ConsoleReceiver
@@ -44,6 +46,7 @@ class MyMessengerClientConsole:
             self.client.leave_room()
         elif command.startswith('<list>'):
             self.client.contact_list_request()
+            self.show_contacts()
         elif command.startswith('<'):
             action, param = command.split()
             if action == '<add>':
@@ -57,11 +60,14 @@ class MyMessengerClientConsole:
             self.client.request(jm)
 
     def sender(self):
-        self.client.join_room('@all')
         while self.client.is_alive:
             command = input()
             self.sender_parser(command)
         self.stop()
+
+    def show_contacts(self):
+        for contact in self.client.get_contact_list():
+            print(contact)
 
 
 if __name__ == '__main__':
