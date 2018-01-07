@@ -53,10 +53,11 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
 
     def closeEvent(self, QCloseEvent):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
-        self.client.stop()
+        print('Waiting for threads finish... ', sep='')
         self.listener.stop()
+        self.client.stop()
         self.client_thread.join()
-        self.listener_thread.join()
+        print('OK')
         super().closeEvent(QCloseEvent)
 
     def run(self):
