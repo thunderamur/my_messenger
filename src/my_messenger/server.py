@@ -22,56 +22,48 @@ log = Log(logger)
 
 
 class MyMessengerServer(object):
-    """Сервер my_messenger"""
+    """MyMessenger server"""
 
     def __init__(self):
         self.is_alive = False
         self.clients = []
-        # {'room_name': Chat()}
         self.rooms = {}
         self.repo = Repo(session)
         self.repo.show_all_clients()
 
     @log
     def close(self):
-        """Закрыть соединение."""
+        """Close connection."""
         self.socket.close()
 
     @log
     def presence_response(self, presence):
         """
-        Формирование ответа клиенту
-        :param presence_message: Словарь presence запроса
-        :return: Словарь ответа
+        Prepare response to client on presence request
+        :param presence_message: Dict of presense request
+        :return: Dict of response
         """
-        # Делаем проверки
         try:
             username = presence.user.account_name
             status = presence.user.status
-            #
-            # Добавить ведение статуса пользователя
-            #
         except Exception as e:
-            # Шлем код ошибки
             response = JimResponse(WRONG_REQUEST, error=str(e))
             return response.to_dict()
         else:
-            # Если всё хорошо шлем ОК
             response = JimResponse(OK)
             return response.to_dict()
 
     @log
     def authenticate_response(self, authenticate):
         """
-        Формирование ответа клиенту
-        :param presence_message: Словарь presence запроса
-        :return: Словарь ответа
+        Prepare response to client on authenticate request
+        :param presence_message: Dict of authenticate request
+        :return: Dict of response
         """
-        # Делаем проверки
         try:
             username = authenticate.user.account_name
             password = authenticate.user.password
-            # сохраняем пользователя в базу если его там еще нет
+            # If user is not in DB save it
             if not self.repo.client_exists(username):
                 self.repo.add_client(username, password)
             client = self.repo.get_client_by_username(username)
@@ -81,26 +73,22 @@ class MyMessengerServer(object):
             response = JimResponse(WRONG_LOGIN_OR_PASSWORD, error=str(e))
             return response.to_dict()
         except Exception as e:
-            # Шлем код ошибки
             response = JimResponse(WRONG_REQUEST, error=str(e))
             return response.to_dict()
         else:
-            # Если всё хорошо шлем ОК
             response = JimResponse(OK)
             return response.to_dict()
 
     def parse(self, requests):
-        """Парсер сообщений."""
+        """Parser of JIM messages"""
         results = {}
 
         for sock in requests:
             action = Jim.from_dict(requests[sock])
             print(action.__dict__)
-
             if hasattr(action, ACTION):
 
                 if action.action == GET_CONTACTS:
-                    # Добавить обработку пустого списка контактов
                     contacts = self.repo.get_contacts(action.account_name)
                     if action.quantity == 0:
                         index = 0
@@ -120,14 +108,10 @@ class MyMessengerServer(object):
                     username = action.account_name
                     try:
                         self.repo.add_contact(username, user_id)
-                        # шлем удачный ответ
                         response = JimResponse(ACCEPTED)
-                        # Отправляем
                         send_message(sock, response.to_dict())
                     except ContactDoesNotExist as e:
-                        # формируем ошибку, такого контакта нет
-                        response = JimResponse(WRONG_REQUEST, error='Такого контакта нет')
-                        # Отправляем
+                        response = JimResponse(WRONG_REQUEST, error='User not found')
                         send_message(sock, response.to_dict())
 
                 elif action.action == DEL_CONTACT:
@@ -135,14 +119,10 @@ class MyMessengerServer(object):
                     username = action.account_name
                     try:
                         self.repo.del_contact(username, user_id)
-                        # шлем удачный ответ
                         response = JimResponse(ACCEPTED)
-                        # Отправляем
                         send_message(sock, response.to_dict())
                     except ContactDoesNotExist as e:
-                        # формируем ошибку, такого контакта нет
-                        response = JimResponse(WRONG_REQUEST, error='Такого контакта нет')
-                        # Отправляем
+                        response = JimResponse(WRONG_REQUEST, error='User not found')
                         send_message(sock, response.to_dict())
 
                 elif action.action == PRESENCE:
@@ -170,16 +150,15 @@ class MyMessengerServer(object):
                         send_message(sock, JimResponse(NOT_FOUND).to_dict())
 
                 elif action.action == QUIT:
-                    #
-                    # !!!! дописать удаление клиента из комнат
-                    #
+                    # TODO: Remove client from rooms.
                     print('Client {} {} quit'.format(sock.fileno(), sock.getpeername()))
                     send_message(sock, JimResponse(OK).to_dict())
                     self.clients.remove(sock)
 
             else:
-                print('!!!!!!!!!!!!! NO ACTION !!!!!!!!!!!!!!!!')
-                print(action.__dict__)
+                msg = 'No action in JIM message.\n' + action.__dict__
+                print(msg)
+                logger.warning(msg)
 
         for sock in self.clients:
             for room in self.rooms:
@@ -190,14 +169,14 @@ class MyMessengerServer(object):
         return results
 
     def client_disconnected(self, sock):
-        """Клиент отключился."""
+        """Output message about client disconnected event."""
         msg = 'Client {} {} disconnected'.format(sock.fileno(), sock.getpeername())
         logger.info(msg)
         print(msg)
 
     def read_requests(self, r_clients):
-        """Читаем запросы от клиентов."""
-        responses = {}  # Словарь ответов сервера вида {сокет: запрос}
+        """Read requests from clients."""
+        responses = {}  # Dict of server's responses like {socket: response}
         for sock in r_clients:
             try:
                 data = get_message(sock)
@@ -208,20 +187,20 @@ class MyMessengerServer(object):
         return responses
 
     def write_responses(self, responses, w_clients):
-        """Отправляем сообщения клиентам."""
+        """Send messages to clients."""
         for sock in w_clients:
             if sock in responses:
                 try:
                     message = responses[sock]
                     send_message(sock, message.to_dict())
-                except:  # Сокет недоступен, клиент отключился
+                except:  # Socket closed, client disconnected
                     self.client_disconnected(sock)
                     sock.close()
                     self.clients.remove(sock)
 
     @log
     def run(self, host, port, max_connections=5):
-        """Запуск сервера."""
+        """Server start."""
         with socket(AF_INET, SOCK_STREAM) as sock:
             self.socket = sock
             self.socket.bind((host, port))
@@ -233,7 +212,7 @@ class MyMessengerServer(object):
                 try:
                     sock, addr = self.socket.accept()
                 except OSError as e:
-                    pass  # timeout вышел
+                    pass
                 except KeyboardInterrupt:
                     print('\nEXIT')
                     self.is_alive = False
@@ -241,18 +220,18 @@ class MyMessengerServer(object):
                     print('Connection from: {}'.format(str(addr)))
                     self.clients.append(sock)
                 finally:
-                    # Проверить наличие событий ввода-вывода
+                    # Check IO events.
                     wait = 0
                     r = []
                     w = []
                     try:
                         r, w, e = select.select(self.clients, self.clients, [], wait)
                     except:
-                        pass  # Ничего не делать, если какой-то клиент отключился
+                        pass  # Client disconnected
 
-                    requests = self.read_requests(r)  # Сохраним запросы клиентов
+                    requests = self.read_requests(r)
                     responses = self.parse(requests)
-                    self.write_responses(responses, w)  # Выполним отправку ответов клиентам
+                    self.write_responses(responses, w)
 
 
 @log
