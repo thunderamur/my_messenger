@@ -6,14 +6,10 @@ from queue import Queue
 
 from jim.utils import send_message, get_message
 from jim.core import *
-
 from utils import start_thread, get_hash
-
 from client_errors import PresenceFail, AuthenticateFail
-
 from log.logger_config import logger_config
 from log.decorators import Log
-
 from client_config import DEBUG
 
 
@@ -94,12 +90,12 @@ class MyMessengerClient:
     @log
     def request(self, jm):
         """Отправить сообщение."""
+        if DEBUG:
+            print('REQUEST: ', jm.to_dict())
+        while not self.is_ready:
+            time.sleep(0.1)
+        self.is_ready = False
         try:
-            if DEBUG:
-                print('REQUEST: ', jm.to_dict())
-            while not self.is_ready:
-                time.sleep(0.1)
-            self.is_ready = False
             send_message(self.socket, jm.to_dict())
         except:
             logger.exception('Request to server ERROR. {}'.format(jm.to_dict()))

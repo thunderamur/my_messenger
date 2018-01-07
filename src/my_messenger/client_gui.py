@@ -11,6 +11,14 @@ from handlers import GuiReceiver
 from utils import start_thread
 
 
+def center(widget):
+    screen = QtWidgets.QDesktopWidget().screenGeometry()
+    size = widget.geometry()
+    x = (screen.width() - size.width()) // 2
+    y = (screen.height() - size.height()) // 2
+    widget.move(x, y)
+
+
 class ConnectUI(QtWidgets.QDialog):
     """Modal window to set connection params."""
     def __init__(self, parent=None):
@@ -18,6 +26,7 @@ class ConnectUI(QtWidgets.QDialog):
         self.ui = Ui_ConnectDialog()
         self.ui.setupUi(self)
         self.ui.pushButtonConnect.clicked.connect(self.connect)
+        center(self)
 
     def connect(self):
         """Get params and transfer to parent"""
@@ -26,6 +35,7 @@ class ConnectUI(QtWidgets.QDialog):
         self.parent().port = int(port)
         self.parent().login = self.ui.lineEditLogin.text()
         self.parent().password = self.ui.lineEditPassword.text()
+        self.parent().is_started = True
         self.close()
 
 
@@ -43,6 +53,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.listener = None
         self.client_thread = None
         self.listener_thread = None
+        self.is_started = False
 
         # UI
         self.ui = Ui_MainWindow()
@@ -50,20 +61,27 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
         self.ui.pushButtonAddContact.clicked.connect(self.add_contact)
         self.ui.pushButtonDelContact.clicked.connect(self.del_contact)
-        self.ui.listWidgetContactList.itemDoubleClicked.connect(self.join_room)
+        self.ui.listWidgetContactList.itemDoubleClicked.connect(self.choose_room)
+
+        center(self)
 
     def closeEvent(self, QCloseEvent):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
-        print('Waiting for threads finish... ', sep='')
-        self.listener.stop()
-        self.client.stop()
-        self.client_thread.join()
-        print('OK')
+        if self.is_started:
+            print('Waiting for threads finish... ', sep='')
+            self.listener.stop()
+            self.client.stop()
+            self.client_thread.join()
+            print('OK')
+        else:
+            print('Launch aborted')
         super().closeEvent(QCloseEvent)
 
     def run(self):
         """Start client."""
         self.connect()
+        if not self.is_started:
+            return True
         self.client = MyMessengerClient(self.login, self.password)
         self.client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
         while not self.client.is_alive:
@@ -71,10 +89,11 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
                 return False
         self.listener, self.listener_thread = self.start_listener()
 
-        self.client.contact_list_request()
         while not self.client.is_ready:
-            pass
+            time.sleep(0.1)
+        self.client.contact_list_request()
         self.update_contact_list()
+        self.choose_room()
 
         return True
 
@@ -130,16 +149,18 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
 
     def del_contact(self):
         """Remove contact from contact list."""
-        item = self.ui.listWidgetContactList.currentItem()
-        contact = item.text()
+        widget = self.ui.listWidgetContactList
+        contact = widget.currentItem().text()
         self.client.del_contact(contact)
         self.client.contact_list.remove(contact)
-        # TODO: Replace on remove item from widget
-        self.update_contact_list()
+        widget.takeItem(widget.currentRow())
 
-    def join_room(self):
-        item = self.ui.listWidgetContactList.currentItem()
-        self.client.room = item.text()
+    def choose_room(self):
+        item = self.ui.listWidgetContactList.currentItem() or self.ui.listWidgetContactList.item(0)
+        room = item.text()
+        self.client.room = room
+        self.ui.groupBoxChatName.setTitle('Выбран чат: {}'.format(room))
+        print('Room changed on: {}'.format(room))
 
 
 if __name__ == '__main__':
