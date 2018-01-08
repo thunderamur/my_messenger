@@ -6,17 +6,10 @@ from PyQt5.QtCore import QThread
 from client_core import MyMessengerClient
 from gui.MyMessengerUI import Ui_MainWindow
 from gui.ConnectDialogUI import Ui_ConnectDialog
+from gui.utils import center
 from jim.core import *
 from handlers import GuiReceiver
 from utils import start_thread
-
-
-def center(widget):
-    screen = QtWidgets.QDesktopWidget().screenGeometry()
-    size = widget.geometry()
-    x = (screen.width() - size.width()) // 2
-    y = (screen.height() - size.height()) // 2
-    widget.move(x, y)
 
 
 class ConnectUI(QtWidgets.QDialog):
@@ -156,6 +149,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         widget.takeItem(widget.currentRow())
 
     def choose_room(self):
+        """Change client.room"""
         item = self.ui.listWidgetContactList.currentItem() or self.ui.listWidgetContactList.item(0)
         room = item.text()
         self.client.room = room

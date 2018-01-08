@@ -130,6 +130,7 @@ class MyMessengerClient:
 
     @log
     def get_contact_list(self):
+        """Ждем загрузки списка контактов и возвращаем его."""
         while not self.is_contact_list_ready:
             time.sleep(0.1)
         return self.contact_list
