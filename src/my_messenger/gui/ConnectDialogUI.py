@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'src/my_messenger/gui/ConnectDialog.ui'
+# Form implementation generated from reading ui file 'gui/ui/ConnectDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -60,7 +60,7 @@ class Ui_ConnectDialog(object):
 
     def retranslateUi(self, ConnectDialog):
         _translate = QtCore.QCoreApplication.translate
-        ConnectDialog.setWindowTitle(_translate("ConnectDialog", "Dialog"))
+        ConnectDialog.setWindowTitle(_translate("ConnectDialog", "MyMessenger"))
         self.label.setText(_translate("ConnectDialog", "Сервер"))
         self.lineEditIP.setText(_translate("ConnectDialog", "127.0.0.1:7777"))
         self.label_2.setText(_translate("ConnectDialog", "Логин"))

@@ -1,6 +1,6 @@
 import sys
 import time
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QThread
 
 from client_core import MyMessengerClient
@@ -16,7 +16,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
     """GUI for MyMessenger"""
     def __init__(self, parent=None):
         super().__init__()
-
         # Client
         self.ip = None
         self.port = None
@@ -27,26 +26,29 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.client_thread = None
         self.listener_thread = None
         self.is_started = False
-
         # UI
+        self.initUI()
+        center(self)
+
+    def initUI(self):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
         self.ui.pushButtonAddContact.clicked.connect(self.add_contact)
-        self.ui.pushButtonDelContact.clicked.connect(self.del_contact)
+        self.ui.lineEditAddContact.returnPressed.connect(self.add_contact)
         self.ui.listWidgetContactList.itemDoubleClicked.connect(self.choose_room)
-
-        center(self)
-        self.initUI()
-
-    def initUI(self):
+        self.ui.quit.triggered.connect(self.close)
+        self.ui.about.triggered.connect(self.aboutDialog)
         self.ui.pushButtonFormatB.clicked.connect(lambda: self.actionFormat('b'))
         self.ui.pushButtonFormatI.clicked.connect(lambda: self.actionFormat('i'))
         self.ui.pushButtonFormatU.clicked.connect(lambda: self.actionFormat('u'))
 
-        # self.setWindowTitle('Main window')
+    def aboutDialog(self):
+        """Launch About Window."""
+        pass
 
     def actionFormat(self, tag):
+        """Font format for text of messages to send."""
         text = self.ui.textEditChatInput.textCursor().selectedText()
         self.ui.textEditChatInput.textCursor().insertHtml('<{0}>{1}</{0}>'.format(tag, text))
 
@@ -61,27 +63,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         else:
             print('Launch aborted')
         super().closeEvent(QCloseEvent)
-
-    def run(self):
-        """Start client."""
-        self.connect()
-        if not self.is_started:
-            return True
-        print(self.login, self.password, self.ip, self.port)
-        self.client = MyMessengerClient(self.login, self.password)
-        self.client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
-        while not self.client.is_alive:
-            if not self.client_thread.is_alive():
-                return False
-        self.listener, self.listener_thread = self.start_listener()
-
-        while not self.client.is_ready:
-            time.sleep(0.1)
-        self.client.contact_list_request()
-        self.update_contact_list()
-        self.choose_room()
-
-        return True
 
     def connect(self):
         """Open connect dialog modal window"""
@@ -110,11 +91,30 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         """ContactWidget update."""
         try:
             self.ui.listWidgetContactList.clear()
-            self.ui.listWidgetContactList.addItem('@all')
+            self.createContactItem('@all')
             for contact in self.client.get_contact_list():
-                self.ui.listWidgetContactList.addItem(contact)
+                self.createContactItem(contact)
         except Exception as e:
             print(e)
+
+    def createContactItem(self, contact):
+        """Create item for Contact List"""
+        item = QtWidgets.QListWidgetItem(self.ui.listWidgetContactList)
+        widget = QtWidgets.QWidget()
+        widgetText = QtWidgets.QLabel(contact)
+        widgetButton = QtWidgets.QPushButton('X')
+        widgetButton.setProperty('id', contact)
+        widgetButton.clicked.connect(self.del_contact)
+        widgetButton.setFixedWidth(31)
+        widgetLayout = QtWidgets.QHBoxLayout()
+        widgetLayout.addWidget(widgetText)
+        widgetLayout.addWidget(widgetButton)
+
+        widget.setLayout(widgetLayout)
+        item.setSizeHint(widget.sizeHint())
+        self.ui.listWidgetContactList.setItemWidget(item, widget)
+
+        item.setData(QtCore.Qt.UserRole, contact)
 
     def chat_send(self):
         """Send message."""
@@ -132,23 +132,46 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.lineEditAddContact.clear()
         self.client.add_contact(contact)
         self.client.contact_list.append(contact)
-        self.ui.listWidgetContactList.addItem(contact)
+        # self.ui.listWidgetContactList.addItem(contact)
+        self.createContactItem(contact)
 
     def del_contact(self):
         """Remove contact from contact list."""
         widget = self.ui.listWidgetContactList
-        contact = widget.currentItem().text()
+        contact = self.sender().property('id')
         self.client.del_contact(contact)
+        index = self.client.contact_list.index(contact)
+        widget.takeItem(index + 1)
         self.client.contact_list.remove(contact)
-        widget.takeItem(widget.currentRow())
 
     def choose_room(self):
         """Change client.room"""
         item = self.ui.listWidgetContactList.currentItem() or self.ui.listWidgetContactList.item(0)
-        room = item.text()
+        room = item.data(QtCore.Qt.UserRole)
         self.client.room = room
         self.ui.groupBoxChatName.setTitle('Выбран чат: {}'.format(room))
         print('Room changed on: {}'.format(room))
+
+    def run(self):
+        """Start client."""
+        self.connect()
+        if not self.is_started:
+            return True
+        print(self.login, self.password, self.ip, self.port)
+        self.client = MyMessengerClient(self.login, self.password)
+        self.client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
+        while not self.client.is_alive:
+            if not self.client_thread.is_alive():
+                return False
+        self.listener, self.listener_thread = self.start_listener()
+
+        while not self.client.is_ready:
+            time.sleep(0.1)
+        self.client.contact_list_request()
+        self.update_contact_list()
+        self.choose_room()
+
+        return True
 
 
 if __name__ == '__main__':
