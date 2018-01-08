@@ -37,6 +37,18 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.listWidgetContactList.itemDoubleClicked.connect(self.choose_room)
 
         center(self)
+        self.initUI()
+
+    def initUI(self):
+        self.ui.pushButtonFormatB.clicked.connect(lambda: self.actionFormat('b'))
+        self.ui.pushButtonFormatI.clicked.connect(lambda: self.actionFormat('i'))
+        self.ui.pushButtonFormatU.clicked.connect(lambda: self.actionFormat('u'))
+
+        # self.setWindowTitle('Main window')
+
+    def actionFormat(self, tag):
+        text = self.ui.textEditChatInput.textCursor().selectedText()
+        self.ui.textEditChatInput.textCursor().insertHtml('<{0}>{1}</{0}>'.format(tag, text))
 
     def closeEvent(self, QCloseEvent):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
@@ -106,6 +118,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
 
     def chat_send(self):
         """Send message."""
+        # msg_txt = self.ui.textEditChatInput.toHtml()
         msg_txt = self.ui.textEditChatInput.toPlainText()
         jm = JimMessage(self.client.room, self.client.user.account_name, msg_txt)
         self.client.request(jm)
@@ -142,8 +155,10 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     client_gui = MyMessengerClientGUI()
-    client_gui.show()
     while not client_gui.run():
         print('Run FAILED. Trying again...')
-
-    sys.exit(app.exec_())
+    if client_gui.is_started:
+        client_gui.show()
+        sys.exit(app.exec_())
+    else:
+        client_gui.close()

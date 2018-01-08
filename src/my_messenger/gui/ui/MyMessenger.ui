@@ -79,7 +79,7 @@
       <x>220</x>
       <y>40</y>
       <width>361</width>
-      <height>251</height>
+      <height>231</height>
      </rect>
     </property>
    </widget>
@@ -95,6 +95,61 @@
     <property name="title">
      <string>Чат не выбран</string>
     </property>
+    <widget class="QPushButton" name="pushButtonFormatB">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>266</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/b.jpg</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/b.jpg</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonFormatI">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>266</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/i.jpg</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/i.jpg</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButtonFormatU">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>266</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/u.jpg</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/u.jpg</iconset>
+     </property>
+    </widget>
+    <zorder>pushButtonFormatB</zorder>
+    <zorder>listWidgetMessages</zorder>
+    <zorder>pushButtonFormatI</zorder>
+    <zorder>pushButtonFormatU</zorder>
    </widget>
    <widget class="QListWidget" name="listWidgetContactList">
     <property name="geometry">

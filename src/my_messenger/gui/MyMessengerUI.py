@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'MyMessenger.ui'
+# Form implementation generated from reading ui file 'gui/ui/MyMessenger.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -30,11 +30,36 @@ class Ui_MainWindow(object):
         self.pushButtonChatSend.setGeometry(QtCore.QRect(500, 300, 81, 41))
         self.pushButtonChatSend.setObjectName("pushButtonChatSend")
         self.listWidgetMessages = QtWidgets.QListWidget(self.centralwidget)
-        self.listWidgetMessages.setGeometry(QtCore.QRect(220, 40, 361, 251))
+        self.listWidgetMessages.setGeometry(QtCore.QRect(220, 40, 361, 231))
         self.listWidgetMessages.setObjectName("listWidgetMessages")
         self.groupBoxChatName = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBoxChatName.setGeometry(QtCore.QRect(210, 10, 381, 341))
         self.groupBoxChatName.setObjectName("groupBoxChatName")
+        self.pushButtonFormatB = QtWidgets.QPushButton(self.groupBoxChatName)
+        self.pushButtonFormatB.setGeometry(QtCore.QRect(10, 266, 21, 21))
+        self.pushButtonFormatB.setText("")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/b.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButtonFormatB.setIcon(icon)
+        self.pushButtonFormatB.setObjectName("pushButtonFormatB")
+        self.pushButtonFormatI = QtWidgets.QPushButton(self.groupBoxChatName)
+        self.pushButtonFormatI.setGeometry(QtCore.QRect(40, 266, 21, 21))
+        self.pushButtonFormatI.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/i.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButtonFormatI.setIcon(icon1)
+        self.pushButtonFormatI.setObjectName("pushButtonFormatI")
+        self.pushButtonFormatU = QtWidgets.QPushButton(self.groupBoxChatName)
+        self.pushButtonFormatU.setGeometry(QtCore.QRect(70, 266, 21, 21))
+        self.pushButtonFormatU.setText("")
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap("../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/u.jpg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButtonFormatU.setIcon(icon2)
+        self.pushButtonFormatU.setObjectName("pushButtonFormatU")
+        self.pushButtonFormatB.raise_()
+        self.listWidgetMessages.raise_()
+        self.pushButtonFormatI.raise_()
+        self.pushButtonFormatU.raise_()
         self.listWidgetContactList = QtWidgets.QListWidget(self.centralwidget)
         self.listWidgetContactList.setGeometry(QtCore.QRect(10, 80, 191, 271))
         self.listWidgetContactList.setObjectName("listWidgetContactList")
