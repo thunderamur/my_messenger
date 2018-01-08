@@ -4,32 +4,12 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread
 
 from client_core import MyMessengerClient
-from gui.MyMessengerUI import Ui_MainWindow
-from gui.ConnectDialogUI import Ui_ConnectDialog
-from gui.utils import center
 from jim.core import *
 from handlers import GuiReceiver
 from utils import start_thread
-
-
-class ConnectUI(QtWidgets.QDialog):
-    """Modal window to set connection params."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.ui = Ui_ConnectDialog()
-        self.ui.setupUi(self)
-        self.ui.pushButtonConnect.clicked.connect(self.connect)
-        center(self)
-
-    def connect(self):
-        """Get params and transfer to parent"""
-        ip, port = self.ui.lineEditIP.text().split(':')
-        self.parent().ip = ip
-        self.parent().port = int(port)
-        self.parent().login = self.ui.lineEditLogin.text()
-        self.parent().password = self.ui.lineEditPassword.text()
-        self.parent().is_started = True
-        self.close()
+from gui.utils import center
+from gui.MyMessengerUI import Ui_MainWindow
+from gui.dialogs import ConnectUI
 
 
 class MyMessengerClientGUI(QtWidgets.QMainWindow):
@@ -75,6 +55,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.connect()
         if not self.is_started:
             return True
+        print(self.login, self.password, self.ip, self.port)
         self.client = MyMessengerClient(self.login, self.password)
         self.client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
         while not self.client.is_alive:
