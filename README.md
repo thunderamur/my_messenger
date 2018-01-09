@@ -22,7 +22,7 @@
 
 ### Run ###
 
-Just use in terminal (command prompt on windows) following commands:
+* Just use in terminal (command prompt on windows) following commands:
     * mm-server
     * mm-client <addr> [-port=<port>] -user=<user> -pass=<password>
     * mm-client-qt5
