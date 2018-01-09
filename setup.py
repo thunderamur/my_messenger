@@ -11,9 +11,8 @@ setup(
     url="https://github.com/thunderamur/my_messenger",
     license='MIT',
     keywords=['chat PyQt 5', 'jim chat'],
-    # packages=find_packages('src'),
+    packages=find_packages('src'),
     package_dir={'my_messenger': 'src/my_messenger'},
-    packages=['my_messenger'],
     python_requires='>=3.5',
     install_requires=[
         "PyQt5>=5.9",
