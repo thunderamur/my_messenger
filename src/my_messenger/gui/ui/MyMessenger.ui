@@ -50,16 +50,6 @@
      <string>Отправить</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidgetMessages">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>40</y>
-      <width>361</width>
-      <height>241</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBoxChatName">
     <property name="geometry">
      <rect>
@@ -133,11 +123,19 @@
       </rect>
      </property>
     </widget>
-    <zorder>pushButtonFormatB</zorder>
-    <zorder>listWidgetMessages</zorder>
-    <zorder>pushButtonFormatI</zorder>
-    <zorder>pushButtonFormatU</zorder>
-    <zorder>textEditChatInput</zorder>
+    <widget class="QTextEdit" name="textEditChat">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>361</width>
+       <height>241</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
    </widget>
    <widget class="QListWidget" name="listWidgetContactList">
     <property name="geometry">
@@ -152,7 +150,6 @@
    <zorder>pushButtonAddContact</zorder>
    <zorder>lineEditAddContact</zorder>
    <zorder>groupBoxChatName</zorder>
-   <zorder>listWidgetMessages</zorder>
    <zorder>pushButtonChatSend</zorder>
    <zorder>listWidgetContactList</zorder>
   </widget>

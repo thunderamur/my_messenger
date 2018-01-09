@@ -47,11 +47,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         """Launch About Window."""
         pass
 
-    def actionFormat(self, tag):
-        """Font format for text of messages to send."""
-        text = self.ui.textEditChatInput.textCursor().selectedText()
-        self.ui.textEditChatInput.textCursor().insertHtml('<{0}>{1}</{0}>'.format(tag, text))
-
     def closeEvent(self, QCloseEvent):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
         if self.is_started:
@@ -79,11 +74,29 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         thread.start()
         return listener, thread
 
+    def actionFormat(self, tag):
+        """Font format for text of messages to send."""
+        text = self.ui.textEditChatInput.textCursor().selectedText()
+        self.ui.textEditChatInput.textCursor().insertHtml('<{0}>{1}</{0}>'.format(tag, text))
+        # self.ui.textEditChatInput.textCursor().insertText('<{0}>{1}</{0}>'.format(tag, text))
+
+    def chat_send(self):
+        """Send message."""
+        msg_txt = self.ui.textEditChatInput.toHtml()
+        # msg_txt = self.ui.textEditChatInput.toPlainText()
+        jm = JimMessage(self.client.room, self.client.user.account_name, msg_txt)
+        self.client.request(jm)
+        self.ui.textEditChatInput.clear()
+        text = '{} ({}):{}<br>'.format(self.login, time.strftime('%H:%M:%S'), msg_txt)
+        self.ui.textEditChat.insertHtml(text)
+        print(self.ui.textEditChat.toHtml())
+        # self.ui.textEditChat.setHtml(text)
+
     def update_chat(self, msg):
         """Chat update."""
         try:
             print(msg)
-            self.ui.listWidgetMessages.addItem(msg)
+            self.ui.textEditChat.textCursor().insertHtml('{}<br>'.format(msg))
         except Exception as e:
             print(e)
 
@@ -116,16 +129,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
 
         item.setData(QtCore.Qt.UserRole, contact)
 
-    def chat_send(self):
-        """Send message."""
-        # msg_txt = self.ui.textEditChatInput.toHtml()
-        msg_txt = self.ui.textEditChatInput.toPlainText()
-        jm = JimMessage(self.client.room, self.client.user.account_name, msg_txt)
-        self.client.request(jm)
-        self.ui.textEditChatInput.clear()
-        text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.message)
-        self.ui.listWidgetMessages.addItem(text)
-
     def add_contact(self):
         """Add contact to contact list."""
         contact = self.ui.lineEditAddContact.text()
@@ -157,7 +160,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.connect()
         if not self.is_started:
             return True
-        print(self.login, self.password, self.ip, self.port)
         self.client = MyMessengerClient(self.login, self.password)
         self.client_thread = start_thread(self.client.run, 'Client', self.ip, self.port)
         while not self.client.is_alive:
@@ -170,6 +172,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.client.contact_list_request()
         self.update_contact_list()
         self.choose_room()
+        self.setWindowTitle('MyMessenger - {}'.format(self.login))
 
         return True
 
