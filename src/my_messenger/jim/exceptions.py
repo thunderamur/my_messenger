@@ -33,7 +33,7 @@ class WrongDictError(WrongInputError):
         return 'Wrong input dict: {}'.format(self.input_dict)
 
 
-class ToLongError(Exception):
+class TooLongError(Exception):
     """Ошибка когда наше поле длинее чем надо."""
 
     def __init__(self, name, value, max_length):
@@ -47,7 +47,7 @@ class ToLongError(Exception):
         self.max_length = max_length
 
     def __str__(self):
-        return '{}: {} to long (> {} simbols)'.format(self.name, self.value, self.max_length)
+        return '{}: {} to long (> {} symbols)'.format(self.name, self.value, self.max_length)
 
 
 class ResponseCodeError(Exception):

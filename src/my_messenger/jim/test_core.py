@@ -2,7 +2,7 @@ import time
 from pytest import raises
 from .core import MaxLengthField, JimAction, JimPresence, JimMessage, ResponseField, Jim, JimResponse,\
     JimJoin, JimLeave, JimQuit
-from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDictError, ResponseCodeError
+from .exceptions import WrongParamsError, TooLongError, WrongActionError, WrongDictError, ResponseCodeError
 
 
 class TestMaxLengthField:
@@ -13,7 +13,7 @@ class TestMaxLengthField:
         t1 = TestClass()
         t1.name = 'ab'
         assert t1.name == 'ab'
-        with raises(ToLongError):
+        with raises(TooLongError):
             t1.name = 'abc'
 
 

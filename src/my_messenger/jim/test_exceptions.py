@@ -1,4 +1,4 @@
-from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDictError, ResponseCodeError
+from .exceptions import WrongParamsError, TooLongError, WrongActionError, WrongDictError, ResponseCodeError
 
 
 def test_str():
@@ -6,8 +6,8 @@ def test_str():
 
     e = WrongParamsError(wrong_dict)
     assert str(e) == "Wrong action params: {'test': 'test', 'other': 'other'}"
-    e = ToLongError('field_name', 30, 25)
-    assert str(e) == "field_name: 30 to long (> 25 simbols)"
+    e = TooLongError('field_name', 30, 25)
+    assert str(e) == "field_name: 30 to long (> 25 symbols)"
     e = WrongActionError('test_action')
     assert str(e) == "Wrong action: test_action"
     e = WrongDictError(wrong_dict)

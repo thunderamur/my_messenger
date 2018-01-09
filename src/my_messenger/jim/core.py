@@ -1,6 +1,6 @@
 import time as ctime
 from .config import *
-from .exceptions import WrongParamsError, ToLongError, WrongActionError, WrongDictError, ResponseCodeError, \
+from .exceptions import WrongParamsError, TooLongError, WrongActionError, WrongDictError, ResponseCodeError, \
     IsNotJimUser
 
 
@@ -19,7 +19,7 @@ class MaxLengthField:
         # если длина поля больше максимального значения
         if len(value) > self.max_length:
             # вызываем ошибку
-            raise ToLongError(self.name, value, self.max_length)
+            raise TooLongError(self.name, value, self.max_length)
         # иначе записываем данные в поле
         setattr(instance, self.name, value)
 
