@@ -4,14 +4,14 @@
 
 * MyMessenger - JSON IM project
 * Study project
-* Version 0.1a
+* Version 0.2
 
 ### Install ###
 
 * on linux:
     * Create virtual environment: python3 -m venv <dir name>
     * cd <"dir name">
-    * source bin\activate <"dir name">
+    * source bin/activate <"dir name">
     * pip install MyMessenger
 
 * on windows:
@@ -22,6 +22,14 @@
 
 ### Run ###
 
+Just use in terminal (command prompt on windows) following commands:
+    * mm-server
+    * mm-client <addr> [-port=<port>] -user=<user> -pass=<password>
+    * mm-client-qt5
+
 ### TO DO ###
-* To finish the Run block of this doc.
+
+* New chat.
+* Format and smile buttons (QPushButton) replace to QAction.
+* Add smiles.
 
