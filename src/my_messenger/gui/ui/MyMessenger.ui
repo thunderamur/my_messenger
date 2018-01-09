@@ -136,6 +136,29 @@
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="QPushButton" name="pushButtonSmile">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>280</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/smile/ab.gif</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/smile/ab.gif</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>20</width>
+       <height>24</height>
+      </size>
+     </property>
+    </widget>
    </widget>
    <widget class="QListWidget" name="listWidgetContactList">
     <property name="geometry">

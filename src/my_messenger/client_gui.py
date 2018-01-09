@@ -1,12 +1,15 @@
 import sys
 import time
+import os
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QThread
+from PyQt5.QtWidgets import QAction
+from PyQt5.QtGui import QIcon
 
 from client_core import MyMessengerClient
 from jim.core import *
 from handlers import GuiReceiver
-from utils import start_thread
+from utils import start_thread, APP_PATH
 from gui.utils import center
 from gui.MyMessengerUI import Ui_MainWindow
 from gui.dialogs import ConnectUI
@@ -42,10 +45,22 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.pushButtonFormatB.clicked.connect(lambda: self.actionFormat('b'))
         self.ui.pushButtonFormatI.clicked.connect(lambda: self.actionFormat('i'))
         self.ui.pushButtonFormatU.clicked.connect(lambda: self.actionFormat('u'))
+        self.ui.pushButtonSmile.clicked.connect(self.insertSmile)
 
     def aboutDialog(self):
         """Launch About Window."""
         pass
+
+    def connect(self):
+        """Open connect dialog modal window"""
+        cui = ConnectUI(parent=self)
+        cui.exec()
+
+    def insertSmile(self):
+        """Add smile to message."""
+        url = os.path.join(APP_PATH, 'gui/img/smile/ab.gif')
+        html = '<img src="{}" />'.format(url)
+        self.ui.textEditChatInput.insertHtml(html)
 
     def closeEvent(self, QCloseEvent):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
@@ -58,11 +73,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         else:
             print('Launch aborted')
         super().closeEvent(QCloseEvent)
-
-    def connect(self):
-        """Open connect dialog modal window"""
-        cui = ConnectUI(parent=self)
-        cui.exec()
 
     def start_listener(self):
         """Start GuiReceiver"""
@@ -177,7 +187,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         return True
 
 
-if __name__ == '__main__':
+def main():
     app = QtWidgets.QApplication(sys.argv)
 
     client_gui = MyMessengerClientGUI()
@@ -188,3 +198,7 @@ if __name__ == '__main__':
         sys.exit(app.exec_())
     else:
         client_gui.close()
+
+
+if __name__ == '__main__':
+    main()

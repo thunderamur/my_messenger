@@ -70,7 +70,7 @@ class MyMessengerClientConsole:
             print(contact)
 
 
-if __name__ == '__main__':
+def main():
     host = None
     port = None
     name = None
@@ -93,3 +93,7 @@ if __name__ == '__main__':
         client.run(host, port)
     else:
         print('Usage: client.py <addr> [-port=<port>] -user=<user> -pass=<password>')
+
+
+if __name__ == '__main__':
+    main()

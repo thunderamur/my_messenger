@@ -2,11 +2,13 @@ import sys
 import hmac
 import time
 import select
+import os
 from threading import Thread
 
 from jim.config import ENCODING
 
 HASH_SALT = b'MPwWyL4K7Av5q98f'
+APP_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
 def start_thread(target, name, *args):
