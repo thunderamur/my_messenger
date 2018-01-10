@@ -27,7 +27,6 @@ setup(
         'gui/img/avatar/*',
         'gui/img/icon/*',
         'gui/img/smile/*',
-        'gui/ui/*'
     ]},
     entry_points={
         'gui_scripts': [
