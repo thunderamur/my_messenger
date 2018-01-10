@@ -1,10 +1,9 @@
 import time
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from jim.utils import get_message
-from jim.core import *
-
-from client_config import DEBUG
+from .jim.utils import get_message
+from .jim.core import *
+from .client_config import DEBUG
 
 
 class Receiver:

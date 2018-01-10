@@ -1,5 +1,6 @@
 import time
 from pytest import raises
+
 from .core import MaxLengthField, JimAction, JimPresence, JimMessage, ResponseField, Jim, JimResponse,\
     JimJoin, JimLeave, JimQuit
 from .exceptions import WrongParamsError, TooLongError, WrongActionError, WrongDictError, ResponseCodeError

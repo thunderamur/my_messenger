@@ -1,6 +1,7 @@
 from pytest import raises
 import socket
 import json
+
 from .utils import dict_to_bytes, bytes_to_dict, get_message, send_message
 
 

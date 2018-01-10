@@ -6,13 +6,13 @@ from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
 
-from client_core import MyMessengerClient
-from jim.core import *
-from handlers import GuiReceiver
-from utils import start_thread, APP_PATH
-from gui.utils import center
-from gui.MyMessengerUI import Ui_MainWindow
-from gui.dialogs import ConnectUI
+from .client_core import MyMessengerClient
+from .jim.core import *
+from .handlers import GuiReceiver
+from .utils import start_thread, APP_PATH
+from .gui.utils import center
+from .gui.MyMessengerUI import Ui_MainWindow
+from .gui.dialogs import ConnectUI
 
 
 class MyMessengerClientGUI(QtWidgets.QMainWindow):

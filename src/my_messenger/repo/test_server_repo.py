@@ -1,6 +1,7 @@
 from pytest import raises
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from .server_models import Base, Client, ClientContact
 from .server_repo import Repo
 from .server_errors import ContactDoesNotExist

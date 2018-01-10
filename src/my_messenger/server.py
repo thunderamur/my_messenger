@@ -3,17 +3,14 @@ import select
 import logging
 from socket import socket, AF_INET, SOCK_STREAM
 
-from jim.utils import send_message, get_message
-from jim.core import *
-
-from chat.chat import Chat
-
-from repo.server_models import session
-from repo.server_repo import Repo
-from repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
-
-from log.logger_config import logger_config
-from log.decorators import Log
+from .jim.utils import send_message, get_message
+from .jim.core import *
+from .chat.chat import Chat
+from .repo.server_models import session
+from .repo.server_repo import Repo
+from .repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
+from .log.logger_config import logger_config
+from .log.decorators import Log
 
 
 logger_config('server', logging.DEBUG)
@@ -214,7 +211,7 @@ class MyMessengerServer(object):
                 except OSError as e:
                     pass
                 except KeyboardInterrupt:
-                    print('\nEXIT')
+                    print('\nServer stopped')
                     self.is_alive = False
                 else:
                     print('Connection from: {}'.format(str(addr)))
