@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/ui/MyMessenger.ui'
+# Form implementation generated from reading ui file 'ui/MainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -76,14 +76,23 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(self.menubar)
         self.menu.setObjectName("menu")
-        self.about = QtWidgets.QMenu(self.menubar)
-        self.about.setObjectName("about")
+        self.help = QtWidgets.QMenu(self.menubar)
+        self.help.setObjectName("help")
+        self.settings = QtWidgets.QMenu(self.menubar)
+        self.settings.setObjectName("settings")
         MainWindow.setMenuBar(self.menubar)
         self.quit = QtWidgets.QAction(MainWindow)
         self.quit.setObjectName("quit")
+        self.profile = QtWidgets.QAction(MainWindow)
+        self.profile.setObjectName("profile")
+        self.about = QtWidgets.QAction(MainWindow)
+        self.about.setObjectName("about")
         self.menu.addAction(self.quit)
+        self.help.addAction(self.about)
+        self.settings.addAction(self.profile)
         self.menubar.addAction(self.menu.menuAction())
-        self.menubar.addAction(self.about.menuAction())
+        self.menubar.addAction(self.settings.menuAction())
+        self.menubar.addAction(self.help.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -95,6 +104,9 @@ class Ui_MainWindow(object):
         self.pushButtonChatSend.setText(_translate("MainWindow", "Отправить"))
         self.groupBoxChatName.setTitle(_translate("MainWindow", "Чат не выбран"))
         self.menu.setTitle(_translate("MainWindow", "Меню"))
-        self.about.setTitle(_translate("MainWindow", "Справка"))
+        self.help.setTitle(_translate("MainWindow", "Помощь"))
+        self.settings.setTitle(_translate("MainWindow", "Настройки"))
         self.quit.setText(_translate("MainWindow", "Выход"))
+        self.profile.setText(_translate("MainWindow", "Профиль"))
+        self.about.setText(_translate("MainWindow", "Справка"))
 

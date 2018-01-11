@@ -15,6 +15,7 @@ setup(
     package_dir={'my_messenger': 'src/my_messenger'},
     python_requires='>=3.5',
     install_requires=[
+        "pillow>=5.0",
         "PyQt5>=5.9",
         "SQLAlchemy>=1.1",
     ],

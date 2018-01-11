@@ -191,17 +191,35 @@
     </property>
     <addaction name="quit"/>
    </widget>
-   <widget class="QMenu" name="about">
+   <widget class="QMenu" name="help">
     <property name="title">
-     <string>Справка</string>
+     <string>Помощь</string>
     </property>
+    <addaction name="about"/>
+   </widget>
+   <widget class="QMenu" name="settings">
+    <property name="title">
+     <string>Настройки</string>
+    </property>
+    <addaction name="profile"/>
    </widget>
    <addaction name="menu"/>
-   <addaction name="about"/>
+   <addaction name="settings"/>
+   <addaction name="help"/>
   </widget>
   <action name="quit">
    <property name="text">
     <string>Выход</string>
+   </property>
+  </action>
+  <action name="profile">
+   <property name="text">
+    <string>Профиль</string>
+   </property>
+  </action>
+  <action name="about">
+   <property name="text">
+    <string>Справка</string>
    </property>
   </action>
  </widget>

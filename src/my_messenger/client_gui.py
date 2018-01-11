@@ -11,8 +11,8 @@ from .jim.core import *
 from .handlers import GuiReceiver
 from .utils import start_thread, APP_PATH
 from .gui.utils import center
-from .gui.MyMessengerUI import Ui_MainWindow
-from .gui.dialogs import ConnectUI
+from .gui.MainWindowUI import Ui_MainWindow
+from .gui.dialogs import ConnectUI, AboutUI, ProfileUI
 
 
 class MyMessengerClientGUI(QtWidgets.QMainWindow):
@@ -42,19 +42,26 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.listWidgetContactList.itemDoubleClicked.connect(self.choose_room)
         self.ui.quit.triggered.connect(self.close)
         self.ui.about.triggered.connect(self.aboutDialog)
+        self.ui.profile.triggered.connect(self.profileDialog)
         self.ui.pushButtonFormatB.clicked.connect(lambda: self.actionFormat('b'))
         self.ui.pushButtonFormatI.clicked.connect(lambda: self.actionFormat('i'))
         self.ui.pushButtonFormatU.clicked.connect(lambda: self.actionFormat('u'))
         self.ui.pushButtonSmile.clicked.connect(self.insertSmile)
 
     def aboutDialog(self):
+        """Launch Profile Window."""
+        d = AboutUI(parent=self)
+        d.exec()
+
+    def profileDialog(self):
         """Launch About Window."""
-        pass
+        d = ProfileUI(parent=self)
+        d.exec()
 
     def connect(self):
         """Open connect dialog modal window"""
-        cui = ConnectUI(parent=self)
-        cui.exec()
+        d = ConnectUI(parent=self)
+        d.exec()
 
     def insertSmile(self):
         """Add smile to message."""
