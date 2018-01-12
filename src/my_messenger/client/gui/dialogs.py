@@ -8,6 +8,8 @@ from .utils import center
 from .ui.ConnectDialog import Ui_ConnectDialog
 from .ui.AboutDialog import Ui_AboutDialog
 from .ui.ProfileDialog import Ui_ProfileDialog
+from .repo.models import session
+from .repo.repo import Repo
 from ...utils import get_square_image
 
 
@@ -49,9 +51,40 @@ class ProfileUI(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         center(self)
+        self.repo = Repo(session)
+        self.new_avatar = None
+        self.initUI()
+        self.getAvatar()
+
+    def initUI(self):
         self.ui = Ui_ProfileDialog()
         self.ui.setupUi(self)
         self.ui.pushButtonBrowse.clicked.connect(self.loadAvatar)
+        self.ui.pushButtonSave.clicked.connect(self.save)
+        # Disable not ready features
+        self.ui.lineEditLogin.setDisabled(True)
+        self.ui.lineEditPassword.setDisabled(True)
+
+    def save(self):
+        self.saveAvatar()
+        self.close()
+
+    def getAvatar(self):
+        image_bytes = self.repo.get_image()
+        if image_bytes:
+            width = self.ui.labelAvatarImage.width()
+            size = width, width
+            image = Image.frombytes('RGBA', size, image_bytes)
+            self.updateAvatar(image)
+
+    def saveAvatar(self):
+        if self.new_avatar:
+            self.repo.add_image(self.new_avatar.tobytes())
+
+    def updateAvatar(self, image):
+        img_tmp = ImageQt(image.convert('RGBA'))
+        pixmap = QPixmap.fromImage(img_tmp)
+        self.ui.labelAvatarImage.setPixmap(pixmap)
 
     def loadAvatar(self):
         """Get avatar from disk."""
@@ -62,6 +95,5 @@ class ProfileUI(QtWidgets.QDialog):
         image = get_square_image(image)
         width = self.ui.labelAvatarImage.width()
         image = image.resize((width, width), Image.ANTIALIAS)
-        img_tmp = ImageQt(image.convert('RGBA'))
-        pixmap = QPixmap.fromImage(img_tmp)
-        self.ui.labelAvatarImage.setPixmap(pixmap)
+        self.new_avatar = image.convert('RGBA')
+        self.updateAvatar(image)

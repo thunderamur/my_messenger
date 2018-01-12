@@ -58,6 +58,9 @@
    </widget>
   </widget>
   <widget class="QLineEdit" name="lineEditLogin">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>50</x>
@@ -68,6 +71,9 @@
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEditPassword">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>50</x>
@@ -113,7 +119,7 @@
     <string>Пароль</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="pushButtonSave">
    <property name="geometry">
     <rect>
      <x>200</x>

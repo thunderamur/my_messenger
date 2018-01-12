@@ -43,9 +43,9 @@ class Ui_ProfileDialog(object):
         font.setPointSize(12)
         self.labelPassword.setFont(font)
         self.labelPassword.setObjectName("labelPassword")
-        self.pushButton = QtWidgets.QPushButton(ProfileDialog)
-        self.pushButton.setGeometry(QtCore.QRect(200, 260, 85, 27))
-        self.pushButton.setObjectName("pushButton")
+        self.pushButtonSave = QtWidgets.QPushButton(ProfileDialog)
+        self.pushButtonSave.setGeometry(QtCore.QRect(200, 260, 85, 27))
+        self.pushButtonSave.setObjectName("pushButtonSave")
 
         self.retranslateUi(ProfileDialog)
         QtCore.QMetaObject.connectSlotsByName(ProfileDialog)
@@ -57,5 +57,5 @@ class Ui_ProfileDialog(object):
         self.pushButtonBrowse.setText(_translate("ProfileDialog", "Обзор..."))
         self.labelLogin.setText(_translate("ProfileDialog", "Логин"))
         self.labelPassword.setText(_translate("ProfileDialog", "Пароль"))
-        self.pushButton.setText(_translate("ProfileDialog", "Сохранить"))
+        self.pushButtonSave.setText(_translate("ProfileDialog", "Сохранить"))
 
