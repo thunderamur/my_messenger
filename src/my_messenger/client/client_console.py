@@ -1,12 +1,12 @@
 import sys
 import logging
 
-from .jim.core import *
+from ..jim.core import *
+from ..utils import start_thread
+from ..logger.config import logger_config
+from ..logger.decorators import Log
+from .core import MyMessengerClient
 from .handlers import ConsoleReceiver
-from .utils import start_thread
-from .client_core import MyMessengerClient
-from .log.logger_config import logger_config
-from .log.decorators import Log
 
 
 logger_config('client', logging.DEBUG)

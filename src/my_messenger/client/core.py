@@ -4,13 +4,13 @@ import time
 from socket import socket, AF_INET, SOCK_STREAM
 from queue import Queue
 
-from .jim.utils import send_message, get_message
-from .jim.core import *
-from .utils import start_thread, get_hash
-from .client_errors import AuthenticateFail
-from .log.logger_config import logger_config
-from .log.decorators import Log
-from .client_config import DEBUG
+from ..jim.core import *
+from ..jim.utils import send_message, get_message
+from ..utils import start_thread, get_hash
+from ..logger.config import logger_config
+from ..logger.decorators import Log
+from .config import DEBUG
+from .errors import AuthenticateFail
 
 
 logger_config('client', logging.DEBUG)

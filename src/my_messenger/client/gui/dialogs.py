@@ -5,9 +5,9 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 
 from .utils import center
-from .ConnectDialogUI import Ui_ConnectDialog
-from .AboutDialogUI import Ui_AboutDialog
-from .ProfileDialogUI import Ui_ProfileDialog
+from .ui.ConnectDialog import Ui_ConnectDialog
+from .ui.AboutDialog import Ui_AboutDialog
+from .ui.ProfileDialog import Ui_ProfileDialog
 
 
 class ConnectUI(QtWidgets.QDialog):
@@ -55,6 +55,8 @@ class ProfileUI(QtWidgets.QDialog):
 
     def browseFile(self):
         fname = QFileDialog.getOpenFileName(self, 'Выберите аватар', '/home')[0]
+        if not fname:
+            return 0
         image = Image.open(fname)
         width = self.ui.labelAvatarImage.width()
         height = self.ui.labelAvatarImage.height()

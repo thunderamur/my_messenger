@@ -1,18 +1,18 @@
 import sys
 import time
 import os
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, uic
 from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon
 
-from .client_core import MyMessengerClient
-from .jim.core import *
-from .handlers import GuiReceiver
-from .utils import start_thread, APP_PATH
-from .gui.utils import center
-from .gui.MainWindowUI import Ui_MainWindow
-from .gui.dialogs import ConnectUI, AboutUI, ProfileUI
+from ...jim.core import *
+from ...utils import start_thread, APP_PATH
+from ..core import MyMessengerClient
+from ..handlers import GuiReceiver
+from .utils import center
+from .ui.MainWindow import Ui_MainWindow
+from .dialogs import ConnectUI, AboutUI, ProfileUI
 
 
 class MyMessengerClientGUI(QtWidgets.QMainWindow):
@@ -46,7 +46,8 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.pushButtonFormatB.clicked.connect(lambda: self.actionFormat('b'))
         self.ui.pushButtonFormatI.clicked.connect(lambda: self.actionFormat('i'))
         self.ui.pushButtonFormatU.clicked.connect(lambda: self.actionFormat('u'))
-        self.ui.pushButtonSmile.clicked.connect(self.insertSmile)
+        # self.ui.pushButtonSmile.clicked.connect(self.insertSmile)
+        self.ui.labelSmileBtn.mouseReleaseEvent = self.insertSmile
 
     def aboutDialog(self):
         """Launch Profile Window."""
@@ -63,13 +64,14 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         d = ConnectUI(parent=self)
         d.exec()
 
-    def insertSmile(self):
+    def insertSmile(self, event):
+    # def insertSmile(self):
         """Add smile to message."""
-        url = os.path.join(APP_PATH, 'gui/img/smile/ab.gif')
+        url = os.path.join(APP_PATH, 'client/gui/img/smile/ab.gif')
         html = '<img src="{}" />'.format(url)
         self.ui.textEditChatInput.insertHtml(html)
 
-    def closeEvent(self, QCloseEvent):
+    def closeEvent(self, event):
         """Extend of method. Activate stop methods of client and listener before close GUI."""
         if self.is_started:
             print('Waiting for threads finish... ', sep='')
@@ -79,7 +81,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
             print('OK')
         else:
             print('Launch aborted')
-        super().closeEvent(QCloseEvent)
+        super().closeEvent(event)
 
     def start_listener(self):
         """Start GuiReceiver"""
@@ -192,20 +194,3 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.setWindowTitle('MyMessenger - {}'.format(self.login))
 
         return True
-
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-
-    client_gui = MyMessengerClientGUI()
-    while not client_gui.run():
-        print('Run FAILED. Trying again...')
-    if client_gui.is_started:
-        client_gui.show()
-        sys.exit(app.exec_())
-    else:
-        client_gui.close()
-
-
-if __name__ == '__main__':
-    main()

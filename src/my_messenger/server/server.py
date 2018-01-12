@@ -3,14 +3,14 @@ import select
 import logging
 from socket import socket, AF_INET, SOCK_STREAM
 
-from .jim.utils import send_message, get_message
-from .jim.core import *
+from ..jim.utils import send_message, get_message
+from ..jim.core import *
+from ..logger.config import logger_config
+from ..logger.decorators import Log
 from .chat.chat import Chat
 from .repo.server_models import session
 from .repo.server_repo import Repo
 from .repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
-from .log.logger_config import logger_config
-from .log.decorators import Log
 
 
 logger_config('server', logging.DEBUG)
@@ -130,8 +130,11 @@ class MyMessengerServer(object):
                     send_message(sock, self.authenticate_response(action))
 
                 elif action.action == MSG:
-                    self.rooms[action.to].put(sock, action)
-                    send_message(sock, JimResponse(OK).to_dict())
+                    try:
+                        self.rooms[action.to].put(sock, action)
+                        send_message(sock, JimResponse(OK).to_dict())
+                    except KeyError:
+                        send_message(sock, JimResponse(NOT_FOUND).to_dict())
 
                 elif action.action == JOIN:
                     if action.room not in self.rooms:

@@ -76,7 +76,7 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/b.jpg</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/b.jpg</iconset>
+       <normaloff>../../img/icon/b.jpg</normaloff>../../img/icon/b.jpg</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButtonFormatI">
@@ -93,7 +93,7 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/i.jpg</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/i.jpg</iconset>
+       <normaloff>../../img/icon/i.jpg</normaloff>../../img/icon/i.jpg</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButtonFormatU">
@@ -110,7 +110,7 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/u.jpg</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/icon/u.jpg</iconset>
+       <normaloff>../../img/icon/u.jpg</normaloff>../../img/icon/u.jpg</iconset>
      </property>
     </widget>
     <widget class="QTextEdit" name="textEditChatInput">
@@ -150,13 +150,29 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/smile/ab.gif</normaloff>../../../../../../../../../mnt/data/dev/src/my_messenger/src/my_messenger/gui/img/smile/ab.gif</iconset>
+       <normaloff>../img/smile/ab.gif</normaloff>../img/smile/ab.gif</iconset>
      </property>
      <property name="iconSize">
       <size>
        <width>20</width>
        <height>24</height>
       </size>
+     </property>
+    </widget>
+    <widget class="QLabel" name="labelSmileBtn">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>230</y>
+       <width>91</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap>../img/smile/ab.gif</pixmap>
      </property>
     </widget>
    </widget>

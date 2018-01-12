@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="MyMessenger",
-    version='0.2.3',
+    version='0.3.0',
     description="Study project of chat based on JSON IM protocol",
     long_description="Study project of chat based on JSON IM protocol with python3 and PyQt5",
     author="Ramil Minnigaliev",
@@ -25,17 +25,16 @@ setup(
                  "pytest-sugar>=0.9",],
     },
     package_data={'my_messenger': [
-        'gui/img/avatar/*',
-        'gui/img/icon/*',
-        'gui/img/smile/*',
+        'client/gui/img/icon/*',
+        'client/gui/img/smile/*',
     ]},
     entry_points={
         'gui_scripts': [
-            'mm-client-qt5 = my_messenger.client_gui:main',
+            'mm-client-qt5 = my_messenger.client.client_gui:main',
         ],
         'console_scripts': [
-            'mm-client = my_messenger.client_console:main',
-            'mm-server = my_messenger.server:main'
+            'mm-client = my_messenger.client.client_console:main',
+            'mm-server = my_messenger.server.server:main'
         ]
     },
 )
