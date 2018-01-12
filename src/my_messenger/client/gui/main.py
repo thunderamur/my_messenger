@@ -7,6 +7,8 @@ from ...jim.core import *
 from ...utils import start_thread, APP_PATH, get_full_path
 from ..core import MyMessengerClient
 from ..handlers import GuiReceiver
+from .repo.models import session
+from .repo.repo import Repo
 from .utils import center
 from .ui.MainWindow import Ui_MainWindow
 from .dialogs import ConnectUI, AboutUI, ProfileUI
@@ -24,6 +26,7 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__()
         # Client
+        self.repo = Repo(session)
         self.ip = None
         self.port = None
         self.login = None
