@@ -4,7 +4,7 @@
 
 * MyMessenger - JSON IM project
 * Study project
-* Version 0.2
+* Version 0.3.0
 
 ### Install ###
 
@@ -29,5 +29,5 @@ Just use in terminal (command prompt on windows) following commands:
 ### TO DO ###
 
 * New chat.
-* Format and smile buttons (QPushButton) replace to QAction.
+* Complete dev of Profile.
 * Add smiles.
