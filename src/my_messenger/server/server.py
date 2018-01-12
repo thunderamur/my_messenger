@@ -8,9 +8,9 @@ from ..jim.core import *
 from ..logger.config import logger_config
 from ..logger.decorators import Log
 from .chat.chat import Chat
-from .repo.server_models import session
-from .repo.server_repo import Repo
-from .repo.server_errors import ContactDoesNotExist, WrongLoginOrPassword
+from .repo.models import session
+from .repo.repo import Repo
+from .repo.errors import ContactDoesNotExist, WrongLoginOrPassword
 
 
 logger_config('server', logging.DEBUG)

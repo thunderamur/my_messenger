@@ -1,4 +1,4 @@
-from .server_errors import ContactDoesNotExist
+from .errors import ContactDoesNotExist
 
 
 def test_str():

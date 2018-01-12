@@ -1,5 +1,5 @@
-from .server_models import Client, ClientContact
-from .server_errors import ContactDoesNotExist
+from .models import Client, ClientContact
+from .errors import ContactDoesNotExist
 
 
 class Repo:
