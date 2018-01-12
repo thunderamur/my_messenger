@@ -76,7 +76,7 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../img/icon/b.jpg</normaloff>../../img/icon/b.jpg</iconset>
+       <normaloff>../img/icon/b.jpg</normaloff>../img/icon/b.jpg</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButtonFormatI">
@@ -93,7 +93,7 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../img/icon/i.jpg</normaloff>../../img/icon/i.jpg</iconset>
+       <normaloff>../img/icon/i.jpg</normaloff>../img/icon/i.jpg</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButtonFormatU">
@@ -110,7 +110,7 @@
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>../../img/icon/u.jpg</normaloff>../../img/icon/u.jpg</iconset>
+       <normaloff>../img/icon/u.jpg</normaloff>../img/icon/u.jpg</iconset>
      </property>
     </widget>
     <widget class="QTextEdit" name="textEditChatInput">
@@ -136,33 +136,10 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButtonSmile">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>280</y>
-       <width>21</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>../img/smile/ab.gif</normaloff>../img/smile/ab.gif</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>20</width>
-       <height>24</height>
-      </size>
-     </property>
-    </widget>
     <widget class="QLabel" name="labelSmileBtn">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>100</x>
        <y>280</y>
        <width>21</width>
        <height>21</height>

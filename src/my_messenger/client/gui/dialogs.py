@@ -8,6 +8,7 @@ from .utils import center
 from .ui.ConnectDialog import Ui_ConnectDialog
 from .ui.AboutDialog import Ui_AboutDialog
 from .ui.ProfileDialog import Ui_ProfileDialog
+from ...utils import get_square_image
 
 
 class ConnectUI(QtWidgets.QDialog):
@@ -50,17 +51,17 @@ class ProfileUI(QtWidgets.QDialog):
         center(self)
         self.ui = Ui_ProfileDialog()
         self.ui.setupUi(self)
-        # self.ui.groupBox.widgetAvatar
-        self.ui.pushButtonBrowse.clicked.connect(self.browseFile)
+        self.ui.pushButtonBrowse.clicked.connect(self.loadAvatar)
 
-    def browseFile(self):
+    def loadAvatar(self):
+        """Get avatar from disk."""
         fname = QFileDialog.getOpenFileName(self, 'Выберите аватар', '/home')[0]
         if not fname:
             return 0
         image = Image.open(fname)
+        image = get_square_image(image)
         width = self.ui.labelAvatarImage.width()
-        height = self.ui.labelAvatarImage.height()
-        image = image.resize((width, height), Image.ANTIALIAS)
+        image = image.resize((width, width), Image.ANTIALIAS)
         img_tmp = ImageQt(image.convert('RGBA'))
         pixmap = QPixmap.fromImage(img_tmp)
         self.ui.labelAvatarImage.setPixmap(pixmap)

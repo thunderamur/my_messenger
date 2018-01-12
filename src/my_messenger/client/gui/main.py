@@ -1,18 +1,22 @@
-import sys
 import time
 import os
-from PyQt5 import QtWidgets, QtCore, uic
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtGui import QIcon
 
 from ...jim.core import *
-from ...utils import start_thread, APP_PATH
+from ...utils import start_thread, APP_PATH, get_full_path
 from ..core import MyMessengerClient
 from ..handlers import GuiReceiver
 from .utils import center
 from .ui.MainWindow import Ui_MainWindow
 from .dialogs import ConnectUI, AboutUI, ProfileUI
+
+
+def get_icon(image):
+    path = get_full_path(__file__, image)
+    icon = QtGui.QIcon()
+    icon.addPixmap(QtGui.QPixmap(path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    return icon
 
 
 class MyMessengerClientGUI(QtWidgets.QMainWindow):
@@ -31,9 +35,18 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.is_started = False
         # UI
         self.initUI()
-        center(self)
 
     def initUI(self):
+        """Prepare UI."""
+
+        # Set window on screen center
+        center(self)
+
+        # Change runtime dir to correct work relative path in UI scripts.
+        path = os.path.dirname(os.path.abspath(__file__))
+        ui_files_path = os.path.join(path, 'ui')
+        os.chdir(ui_files_path)
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.pushButtonChatSend.clicked.connect(self.chat_send)
@@ -46,7 +59,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         self.ui.pushButtonFormatB.clicked.connect(lambda: self.actionFormat('b'))
         self.ui.pushButtonFormatI.clicked.connect(lambda: self.actionFormat('i'))
         self.ui.pushButtonFormatU.clicked.connect(lambda: self.actionFormat('u'))
-        # self.ui.pushButtonSmile.clicked.connect(self.insertSmile)
         self.ui.labelSmileBtn.mouseReleaseEvent = self.insertSmile
 
     def aboutDialog(self):
@@ -65,7 +77,6 @@ class MyMessengerClientGUI(QtWidgets.QMainWindow):
         d.exec()
 
     def insertSmile(self, event):
-    # def insertSmile(self):
         """Add smile to message."""
         url = os.path.join(APP_PATH, 'client/gui/img/smile/ab.gif')
         html = '<img src="{}" />'.format(url)

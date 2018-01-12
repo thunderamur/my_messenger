@@ -12,7 +12,9 @@ setup(
     license='MIT',
     keywords=['chat PyQt 5', 'jim chat'],
     packages=find_packages('src'),
-    package_dir={'my_messenger': 'src/my_messenger'},
+    package_dir={
+        'my_messenger': 'src/my_messenger',
+    },
     python_requires='>=3.5',
     install_requires=[
         "pillow>=5.0",
@@ -24,17 +26,19 @@ setup(
                  "pytest-cov>=2.5",
                  "pytest-sugar>=0.9",],
     },
-    package_data={'my_messenger': [
-        'client/gui/img/icon/*',
-        'client/gui/img/smile/*',
-    ]},
+    package_data={
+        'my_messenger': [
+            'client/gui/img/icon/*',
+            'client/gui/img/smile/*',
+        ],
+    },
     entry_points={
         'gui_scripts': [
             'mm-client-qt5 = my_messenger.client.client_gui:main',
         ],
         'console_scripts': [
             'mm-client = my_messenger.client.client_console:main',
-            'mm-server = my_messenger.server.server:main'
+            'mm-server = my_messenger.server.server:main',
         ]
     },
 )
