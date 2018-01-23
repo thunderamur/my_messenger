@@ -7,6 +7,7 @@ from ..jim.utils import send_message, get_message
 from ..jim.core import *
 from ..logger.config import logger_config
 from ..logger.decorators import Log
+from ..mongo_db.core import MongoRepo
 from .chat.chat import Chat
 from .repo.models import session
 from .repo.repo import Repo
@@ -27,6 +28,7 @@ class MyMessengerServer(object):
         self.rooms = {}
         self.repo = Repo(session)
         self.repo.show_all_clients()
+        self.mongo_repo = MongoRepo()
 
     @log
     def close(self):

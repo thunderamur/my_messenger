@@ -20,6 +20,7 @@ setup(
         "pillow>=5.0",
         "PyQt5>=5.9",
         "SQLAlchemy>=1.1",
+        "pymongo>=3.6"
     ],
     extras_require={
         'test': ["pytest>=3.2",
