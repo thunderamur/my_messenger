@@ -72,6 +72,12 @@ class Repo:
                 result.append(contact)
         return result
 
+    def get_all_clients(self):
+        result = []
+        for c in self.session.query(Client).all():
+            result.append(c.Name)
+        return result
+
     def show_all_clients(self):
         for c in self.session.query(Client).all():
             print(c.ClientId, c.Name)
