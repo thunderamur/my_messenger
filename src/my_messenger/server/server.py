@@ -27,8 +27,9 @@ class MyMessengerServer(object):
         self.clients = []
         self.rooms = {}
         self.repo = Repo(session)
+        self.clients_all = self.repo.get_all_clients()
         self.repo.show_all_clients()
-        self.mongo_repo = MongoRepo()
+        self.mongo_repo = MongoRepo('192.168.100.102')
 
     @log
     def close(self):
@@ -133,7 +134,12 @@ class MyMessengerServer(object):
 
                 elif action.action == MSG:
                     try:
-                        self.rooms[action.to].put(sock, action)
+                        if action.to in self.rooms:
+                            self.rooms[action.to].put(sock, action)
+                        elif action.to in self.clients_all:
+                            self.mongo_repo.push(action.from_, action.to, action.message)
+                        else:
+                            raise KeyError
                         send_message(sock, JimResponse(OK).to_dict())
                     except KeyError:
                         send_message(sock, JimResponse(NOT_FOUND).to_dict())
@@ -142,6 +148,7 @@ class MyMessengerServer(object):
                     if action.room not in self.rooms:
                         self.rooms.update({action.room: Chat()})
                     self.rooms[action.room].join(sock)
+                    self.load_offline_messages(action.room)
                     send_message(sock, JimResponse(ACCEPTED).to_dict())
 
                 elif action.action == LEAVE:
@@ -169,6 +176,15 @@ class MyMessengerServer(object):
                         results[sock] = self.rooms[room].get(sock)
 
         return results
+
+    def load_offline_messages(self, to):
+        while True:
+            for item in self.mongo_repo.pop(None, to):
+                for message in item['messages']:
+                    jm = JimMessage(to, item['from'], message['message'], message['time'])
+                    self.rooms[to].put(None, jm)
+            else:
+                break
 
     def client_disconnected(self, sock):
         """Output message about client disconnected event."""

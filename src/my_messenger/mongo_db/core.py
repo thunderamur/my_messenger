@@ -5,39 +5,28 @@ from pymongo import MongoClient
 
 """
 [
-    {'from': from,
-     'to': [
-                {'to': to,
-                'messages': [
-                        {'time': time
-                        'message': message},
-                        {'time': time
-                        'message': message},
-                ]},
-                {'to': to,
-                'messages': [
-                        {'time': time
-                        'message': message},
-                ]},
+    {'to': to,
+    'from': from,
+    'messages': [
+            {'time': time
+            'message': message},
     ]},
 ]
 """
 
 
 class MongoRepo:
-    """Хранилище на базе MongoDB"""
+    """Хранилище на MongoDB"""
 
     def __init__(self, host='localhost'):
         self.client = MongoClient(host)
         self.db = self.client.mm_client_db
 
-    def add(self, from_, to, message):
-        self.db.messages.update(
+    def push(self, from_, to, message):
+        result = self.db.messages.update_one(
             {
                 'from': from_,
-                'to': {
-                    'to': to,
-                }
+                'to': to,
             },
             {
                 '$push': {
@@ -48,3 +37,30 @@ class MongoRepo:
                 }
             }
         )
+        if result.matched_count == 0:
+            self.db.messages.insert(
+                {
+                    'from': from_,
+                    'to': to,
+                    'messages': [
+                        {
+                            'time': time.time(),
+                            'message': message
+                        }
+                    ]
+                }
+            )
+
+    def pop(self, from_=None, to=None):
+        d = {}
+        if from_:
+            d.update({'from': from_})
+        if to:
+            d.update({'to': to})
+        for msg in self.db.messages.find(d):
+            self.db.messages.remove({'from': msg['from'], 'to': msg['to']})
+            yield msg
+
+    def get_all(self):
+        for item in self.db.messages.find():
+            yield item
