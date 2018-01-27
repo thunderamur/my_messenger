@@ -1,4 +1,4 @@
-import time
+from datetime import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from ..jim.utils import get_message
@@ -40,7 +40,8 @@ class ConsoleReceiver(Receiver):
 
     def show_message(self, jm):
         """Показать сообщение."""
-        print("{} ({}): {}".format(jm.from_, time.strftime('%H:%M:%S'), jm.message))
+        t = datetime.fromtimestamp(jm.time).strftime('%H:%M:%S')
+        print("{} ({}): {}".format(jm.from_, t, jm.message))
 
 
 class GuiReceiver(Receiver, QObject):
@@ -56,7 +57,8 @@ class GuiReceiver(Receiver, QObject):
 
     def show_message(self, jm):
         """Показать сообщение в GUI."""
-        text = '{} ({}):\n{}'.format(jm.from_, time.strftime('%H:%M:%S'), jm.message)
+        t = datetime.fromtimestamp(jm.time).strftime('%H:%M:%S')
+        text = '{} ({}):\n{}'.format(jm.from_, t, jm.message)
         self.gotMessage.emit(text)
 
     def poll(self):
