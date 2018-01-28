@@ -1,6 +1,7 @@
 import time
 
 from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError
 
 
 """
@@ -19,10 +20,20 @@ class MongoRepo:
     """Хранилище на MongoDB"""
 
     def __init__(self, host='localhost'):
-        self.client = MongoClient(host)
+        # Timeout for MongoDB connection, ms
+        maxSevSelDelay = 1000
+        try:
+            self.client = MongoClient('192.168.100.102', serverSelectionTimeoutMS=maxSevSelDelay)
+            self.client.server_info()
+            self.connected = True
+        except ServerSelectionTimeoutError as err:
+            print(err)
+            self.connected = False
         self.db = self.client.mm_client_db
 
     def push(self, from_, to, message):
+        if not self.connected:
+            return
         result = self.db.messages.update_one(
             {
                 'from': from_,
@@ -52,6 +63,8 @@ class MongoRepo:
             )
 
     def pop(self, from_=None, to=None):
+        if not self.connected:
+            return
         d = {}
         if from_:
             d.update({'from': from_})
@@ -62,5 +75,7 @@ class MongoRepo:
             yield msg
 
     def get_all(self):
+        if not self.connected:
+            return
         for item in self.db.messages.find():
             yield item
