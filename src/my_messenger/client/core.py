@@ -9,7 +9,6 @@ from ..jim.utils import send_message, get_message
 from ..utils import start_thread, get_hash
 from ..logger.config import logger_config
 from ..logger.decorators import Log
-from .config import DEBUG
 from .errors import AuthenticateFail
 
 
@@ -48,15 +47,15 @@ class MyMessengerClient:
     @log
     def authenticate(self):
         """Отправить запрос аутентификации и обработать ответ."""
-        print('Authenticate... ', end='')
+        print('Authenticate... ')
         authenticate = JimAuthenticate(self.user)
         self.is_ready = True
         self.request(authenticate)
         response = get_message(self.socket)
         self.is_ready = True
         response = Jim.from_dict(response).to_dict()
-        if response['response'] == OK:
-            print('OK')
+        if response['response'] == ACCEPTED:
+            print('ACCEPTED')
         else:
             print('FAIL')
             logger.warning('Authenticate FAILED')
@@ -90,8 +89,6 @@ class MyMessengerClient:
     @log
     def request(self, jm):
         """Отправить сообщение."""
-        if DEBUG:
-            print('REQUEST: ', jm.to_dict())
         while not self.is_ready:
             time.sleep(0.1)
         self.is_ready = False

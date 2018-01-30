@@ -1,6 +1,7 @@
 import sys
 import select
 import logging
+import time
 from socket import socket, AF_INET, SOCK_STREAM
 
 from ..jim.utils import send_message, get_message
@@ -76,7 +77,7 @@ class MyMessengerServer(object):
             response = JimResponse(WRONG_REQUEST, error=str(e))
             return response.to_dict()
         else:
-            response = JimResponse(OK)
+            response = JimResponse(ACCEPTED)
             return response.to_dict()
 
     def parse(self, requests):
@@ -85,7 +86,6 @@ class MyMessengerServer(object):
 
         for sock in requests:
             action = Jim.from_dict(requests[sock])
-            print(action.__dict__)
             if hasattr(action, ACTION):
 
                 if action.action == GET_CONTACTS:
@@ -153,7 +153,7 @@ class MyMessengerServer(object):
                         self.rooms.update({action.room: Chat()})
                     self.rooms[action.room].join(sock)
                     self.load_offline_messages(action.room)
-                    send_message(sock, JimResponse(ACCEPTED).to_dict())
+                    send_message(sock, JimResponse(OK).to_dict())
 
                 elif action.action == LEAVE:
                     if action.room in self.rooms:
@@ -163,19 +163,20 @@ class MyMessengerServer(object):
                         send_message(sock, JimResponse(NOT_FOUND).to_dict())
 
                 elif action.action == QUIT:
+                    del_room = None
                     for room in self.rooms:
                         # Проходим по чатам
                         if self.rooms[room].is_member(sock):
                             # Если в чате состоит клиент, приславший сообщение о выходе
                             self.rooms[room].leave(sock)
                             # Удаляем его из чата
-                            if self.rooms[room].is_empty():
-                                # Если чат стал пустым (т.е. чат самого клиента
-                                self.rooms.pop(room)
-                                # Удаляем этот чат
+                            if self.rooms[room].is_empty(sock):
+                                # Если чат стал пустым (т.е. это чат самого клиента)
+                                del_room = room
+                    self.rooms.pop(del_room)  # Удаляем этот чат
                     self.clients.remove(sock)
-                    print('Client {} {} quit'.format(sock.fileno(), sock.getpeername()))
                     send_message(sock, JimResponse(OK).to_dict())
+                    print('Client {} {} quit'.format(sock.fileno(), sock.getpeername()))
 
             else:
                 msg = 'No action in JIM message.\n' + action.__dict__
@@ -186,10 +187,10 @@ class MyMessengerServer(object):
             # Проходим по клиентам
             for room in self.rooms:
                 # Проходим по чатам
-                if self.rooms[room].is_member(sock):
-                    # Если в чате состоит клиент
+                if not self.rooms[room].is_empty(sock):
+                    # Если в чате есть сообщения для клиента
                     results[sock] = self.rooms[room].get(sock)
-                    # Сохраняем в результат сообщение для этого клиента
+                    # Сохраняем в результат сообщение для клиента
 
         return results
 
@@ -203,6 +204,7 @@ class MyMessengerServer(object):
             else:
                 break
 
+    @log
     def client_disconnected(self, sock):
         """Output message about client disconnected event."""
         msg = 'Client {} {} disconnected'.format(sock.fileno(), sock.getpeername())

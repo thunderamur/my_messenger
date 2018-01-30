@@ -27,7 +27,9 @@ class Chat(object):
         return client in self.__clients
 
     def is_empty(self, client):
-        return len(self.__clients[client]) == 0
+        if self.is_member(client):
+            return len(self.__clients[client]) == 0
+        return True
 
 
 class ChatController(object):

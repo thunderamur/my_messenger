@@ -1,9 +1,10 @@
+import time
+
 from datetime import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from ..jim.utils import get_message
 from ..jim.core import *
-from .config import DEBUG
 
 
 class Receiver:
@@ -23,8 +24,6 @@ class Receiver:
         while self.is_alive:
             msg = get_message(self.sock)
             jm = Jim.from_dict(msg)
-            if DEBUG:
-                print('RESPONSE: ', jm.__dict__)
             if isinstance(jm, JimMessage):
                 self.show_message(jm)
             else:
