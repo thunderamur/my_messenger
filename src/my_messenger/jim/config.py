@@ -2,6 +2,11 @@
 JIM protocol config file.
 """
 
+# DEBUG_MODE may be:
+# 0 - Do not show messages
+# 1 - Show send_message() and get_message()
+# 2 - Show Enter and Return in get_message()
+DEBUG_MODE = 1
 ENCODING = 'utf-8'
 
 # Keys

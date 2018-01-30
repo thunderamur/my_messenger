@@ -1,4 +1,7 @@
 import json
+import time
+
+from .config import DEBUG_MODE
 
 # Кодировка
 ENCODING = 'utf-8'
@@ -33,14 +36,17 @@ def bytes_to_dict(message_bytes):
         # Декодируем
         jmessage = message_bytes.decode(ENCODING)
         # Из json делаем словарь
-        message = json.loads(jmessage)
-        # Если там был словарь
-        if isinstance(message, dict):
-            # Возвращаем сообщение
-            return message
-        else:
-            # Нам прислали неверный тип
-            raise TypeError
+        try:
+            message = json.loads(jmessage)
+            # Если там был словарь
+            if isinstance(message, dict):
+                # Возвращаем сообщение
+                return message
+            else:
+                # Нам прислали неверный тип
+                raise TypeError
+        except json.decoder.JSONDecodeError:
+            print('JSONDecodeError')
     else:
         # Передан неверный тип
         raise TypeError
@@ -53,6 +59,9 @@ def send_message(sock, message):
     :param message: словарь сообщения
     :return: None
     """
+    if DEBUG_MODE > 0:
+        ftime = time.time()
+        print('[{}] SEND: {}'.format(ftime, message))
     # Словарь переводим в байты
     bmessage = dict_to_bytes(message)
     # Отправляем
@@ -66,8 +75,14 @@ def get_message(sock):
     :return: словарь ответа
     """
     # Получаем байты
+    if DEBUG_MODE > 1:
+        ftime = time.time()
+        print('[{}] GET'.format(ftime))
     bresponse = sock.recv(1024)
     # переводим байты в словарь
     response = bytes_to_dict(bresponse)
+    if DEBUG_MODE > 0:
+        ftime = time.time()
+        print('[{}] GET: {} '.format(ftime, response))
     # возвращаем словарь
     return response
