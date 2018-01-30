@@ -3,6 +3,8 @@ import time
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
 
+from .config import MONGO_DB_HOST
+
 
 """
 [
@@ -19,14 +21,14 @@ from pymongo.errors import ServerSelectionTimeoutError
 class MongoRepo:
     """Хранилище на MongoDB"""
 
-    def __init__(self, host='localhost'):
+    def __init__(self):
         """
         Timeout for MongoDB connection, ms
         :param host: MongoDB host
         """
         maxSevSelDelay = 1000
         try:
-            self.client = MongoClient(host, serverSelectionTimeoutMS=maxSevSelDelay)
+            self.client = MongoClient(MONGO_DB_HOST, serverSelectionTimeoutMS=maxSevSelDelay)
             self.client.server_info()
             self.connected = True
         except ServerSelectionTimeoutError as err:

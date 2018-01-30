@@ -12,7 +12,6 @@ from .chat.chat import Chat
 from .repo.models import session
 from .repo.repo import Repo
 from .repo.errors import ContactDoesNotExist, WrongLoginOrPassword
-from .config import MONGO_DB_HOST
 
 
 logger_config('server', logging.DEBUG)
@@ -30,7 +29,7 @@ class MyMessengerServer(object):
         self.repo = Repo(session)
         self.clients_all = self.repo.get_all_clients()
         self.repo.show_all_clients()
-        self.mongo_repo = MongoRepo(MONGO_DB_HOST)
+        self.mongo_repo = MongoRepo()
 
     @log
     def close(self):
