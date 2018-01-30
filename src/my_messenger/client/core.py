@@ -122,7 +122,8 @@ class MyMessengerClient:
     def contact_list_result(self, contact_list):
         """Обработка сообщения о контакте от сервера."""
         self.is_ready = True
-        self.contact_list.append(contact_list.user_id)
+        if contact_list.user_id != '':
+            self.contact_list.append(contact_list.user_id)
         if contact_list.quantity > 0:
             self.contact_list_request(contact_list.quantity)
         else:
