@@ -17,7 +17,8 @@ class Chat(object):
                 self.__clients[c].append(message)
 
     def get(self, client):
-        return self.__clients[client].pop(0)
+        if not self.is_empty(client):
+            return self.__clients[client].pop(0)
 
     def get_members_count(self):
         return len(self.__clients)
