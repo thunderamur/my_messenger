@@ -20,18 +20,29 @@ class MongoRepo:
     """Хранилище на MongoDB"""
 
     def __init__(self, host='localhost'):
-        # Timeout for MongoDB connection, ms
+        """
+        Timeout for MongoDB connection, ms
+        :param host: MongoDB host
+        """
         maxSevSelDelay = 1000
         try:
-            self.client = MongoClient('192.168.100.102', serverSelectionTimeoutMS=maxSevSelDelay)
+            self.client = MongoClient(host, serverSelectionTimeoutMS=maxSevSelDelay)
             self.client.server_info()
             self.connected = True
         except ServerSelectionTimeoutError as err:
-            print(err)
+            print('MongoDB ERROR: {}', format(err))
+            print('You may continue, but offline messages will be not work')
             self.connected = False
         self.db = self.client.mm_client_db
 
     def push(self, from_, to, message):
+        """
+        Add message to DB
+        :param from_:
+        :param to:
+        :param message:
+        :return: None if no connection to DB
+        """
         if not self.connected:
             return
         result = self.db.messages.update_one(
@@ -63,6 +74,12 @@ class MongoRepo:
             )
 
     def pop(self, from_=None, to=None):
+        """
+        Generator. Get offline messages for client.
+        :param from_:
+        :param to:
+        :return: None if no connection to DB
+        """
         if not self.connected:
             return
         d = {}
@@ -75,6 +92,10 @@ class MongoRepo:
             yield msg
 
     def get_all(self):
+        """
+        Generator. Show all messages in DB. Uses for dev.
+        :return: None if no connection to DB
+        """
         if not self.connected:
             return
         for item in self.db.messages.find():

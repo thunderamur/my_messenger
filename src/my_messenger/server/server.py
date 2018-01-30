@@ -12,6 +12,7 @@ from .chat.chat import Chat
 from .repo.models import session
 from .repo.repo import Repo
 from .repo.errors import ContactDoesNotExist, WrongLoginOrPassword
+from .config import MONGO_DB_HOST
 
 
 logger_config('server', logging.DEBUG)
@@ -29,7 +30,7 @@ class MyMessengerServer(object):
         self.repo = Repo(session)
         self.clients_all = self.repo.get_all_clients()
         self.repo.show_all_clients()
-        self.mongo_repo = MongoRepo('192.168.100.102')
+        self.mongo_repo = MongoRepo(MONGO_DB_HOST)
 
     @log
     def close(self):
@@ -89,6 +90,10 @@ class MyMessengerServer(object):
             if hasattr(action, ACTION):
 
                 if action.action == GET_CONTACTS:
+                    # Возвращаем список контактов. Если запрошено quantity == 0, значит это 1-й запрос в обмене и
+                    # нужно вернуть имя 1-го контакта, если он существует или пустую строку, а также количество
+                    # оставшихся (подлежащих передаче) контактов, чтобы клиент знал какой контакт запрашивать следующим
+                    # и нужно ли это делать.
                     contacts = self.repo.get_contacts(action.account_name)
                     if action.quantity == 0:
                         index = 0
@@ -159,10 +164,19 @@ class MyMessengerServer(object):
                         send_message(sock, JimResponse(NOT_FOUND).to_dict())
 
                 elif action.action == QUIT:
-                    # TODO: Remove client from rooms.
+                    for room in self.rooms:
+                        # Проходим по чатам
+                        if self.rooms[room].is_member(sock):
+                            # Если в чате состоит клиент, приславший сообщение о выходе
+                            self.rooms[room].leave(sock)
+                            # Удаляем его из чата
+                            if self.rooms[room].is_empty():
+                                # Если чат стал пустым (т.е. чат самого клиента
+                                self.rooms.pop(room)
+                                # Удаляем этот чат
+                    self.clients.remove(sock)
                     print('Client {} {} quit'.format(sock.fileno(), sock.getpeername()))
                     send_message(sock, JimResponse(OK).to_dict())
-                    self.clients.remove(sock)
 
             else:
                 msg = 'No action in JIM message.\n' + action.__dict__
@@ -170,13 +184,17 @@ class MyMessengerServer(object):
                 logger.warning(msg)
 
         for sock in self.clients:
+            # Проходим по клиентам
             for room in self.rooms:
+                # Проходим по чатам
                 if self.rooms[room].is_member(sock):
-                    if not self.rooms[room].is_empty(sock):
-                        results[sock] = self.rooms[room].get(sock)
+                    # Если в чате состоит клиент
+                    results[sock] = self.rooms[room].get(sock)
+                    # Сохраняем в результат сообщение для этого клиента
 
         return results
 
+    @log
     def load_offline_messages(self, to):
         while True:
             for item in self.mongo_repo.pop(None, to):
