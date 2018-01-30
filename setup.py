@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="MyMessenger",
-    version='0.3.1',
+    version='0.3.2',
     description="Study project of chat based on JSON IM protocol",
     long_description="Study project of chat based on JSON IM protocol with python3 and PyQt5",
     author="Ramil Minnigaliev",

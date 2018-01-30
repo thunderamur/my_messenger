@@ -1,1 +1,1 @@
-MONGO_DB_HOST = '192.168.100.102'
+MONGO_DB_HOST = 'localhost'
