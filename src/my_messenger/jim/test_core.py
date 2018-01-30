@@ -2,7 +2,7 @@ import time
 from pytest import raises
 
 from .core import MaxLengthField, JimAction, JimPresence, JimMessage, ResponseField, Jim, JimResponse,\
-    JimJoin, JimLeave, JimQuit
+    JimJoin, JimLeave, JimQuit, JimUser
 from .exceptions import WrongParamsError, TooLongError, WrongActionError, WrongDictError, ResponseCodeError
 
 
@@ -46,15 +46,15 @@ class TestJimAction:
 
 class TestJimPresence:
     def setup(self):
-        self.jp = JimPresence('Test')
+        self.jp = JimPresence(JimUser('Test'))
 
     def test_init(self):
         assert self.jp.action == 'presence'
-        assert self.jp.account_name == 'Test'
+        assert self.jp.user.account_name == 'Test'
 
     def test_to_dict(self):
         jp_dict = self.jp.to_dict()
-        assert jp_dict['account_name'] == 'Test'
+        assert jp_dict['user']['account_name'] == 'Test'
         assert 'action' in jp_dict
 
 
@@ -168,10 +168,10 @@ class TestJim:
         assert presence.account_name == 'name'
         assert abs(presence.time - time.time()) < 0.1
         #presence
-        presence_dict = {'action': 'presence', 'account_name': 'name', 'time': time.time()}
+        presence_dict = {'action': 'presence', 'user': {'account_name': 'name'}, 'time': time.time()}
         presence = Jim.from_dict(presence_dict)
         assert presence.action == 'presence'
-        assert presence.account_name == 'name'
+        assert presence.user.account_name == 'name'
         assert abs(presence.time-time.time()) < 0.1
         # message
         message_dict = {'action': 'msg', 'message': 'hello', 'to': 'to', 'from': 'from', 'time': time.time()}

@@ -34,7 +34,7 @@ class Client(Base):
     # Информация не обязательное поле
     Info = Column(String, nullable=True)
 
-    def __init__(self, name, password, info=None):
+    def __init__(self, name, password='', info=None):
         self.Name = name
         self.Password = password
         if info:
