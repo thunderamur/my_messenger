@@ -10,7 +10,7 @@
 
 #### on linux ####
 * Create virtual environment: virtualenv -p python3 < name >
-* source < name >/bin/activate < name >
+* source < name >/bin/activate
 * pip install MyMessenger
 
 #### on windows ####
