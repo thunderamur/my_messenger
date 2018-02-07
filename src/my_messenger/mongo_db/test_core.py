@@ -6,6 +6,8 @@ class TestMongoRepo:
         self.mongo_repo = MongoRepo()
 
     def test_push_and_pop(self):
+        if not self.mongo_repo.connected:
+            return
         self.mongo_repo.push('test_from', 'test_to', 'test_message')
         self.mongo_repo.push('test_from', 'test_to', 'test_message_2')
         result1 = None
