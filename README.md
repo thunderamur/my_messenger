@@ -4,7 +4,7 @@
 
 * MyMessenger - JSON IM project
 * Study project
-* Version 0.3.2
+* Version 0.3.3
 
 ### Install ###
 
